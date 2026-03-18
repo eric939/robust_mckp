@@ -1,4 +1,4 @@
-PYTHON ?= python
+PYTHON ?= python3
 
 .PHONY: install-dev test paper-fast paper-nested paper-case paper-all paper-validate clean-paper
 

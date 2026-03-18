@@ -10,15 +10,17 @@ Create an environment and install all artifact dependencies:
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install -U pip
-python -m pip install -e ".[experiments,validation,dev]"
+python3 -m pip install -U pip
+python3 -m pip install -e ".[experiments,validation,dev]"
 ```
 
-Run the fast smoke artifact:
+Run the reduced-grid smoke artifact:
 
 ```bash
 make paper-fast
 ```
+
+This is a smoke check, not an instant run; it still evaluates reduced but nontrivial grids.
 
 Run the full manuscript artifact:
 
@@ -71,19 +73,19 @@ The commands above produce the exact output paths expected by the manuscript.
 If you do not want to use the `Makefile`, run:
 
 ```bash
-python experiments_nested/exp1_integrality_gap.py --output-dir paper/exp1 --results-dir paper/results_nested
-python experiments_nested/exp2_scalability.py --output-dir paper/exp2 --results-dir paper/results_nested
-python experiments_nested/exp3_risk_frontier.py --output-dir paper/exp3 --results-dir paper/results_nested
-python experiments_nested/exp4_summary_table.py --results-dir paper/results_nested --tables-dir paper/tables_nested
-python experiments_case_retail/case_retail_pricing.py --output-dir "paper/retail pricing" --results-dir paper/results_case
+python3 experiments_nested/exp1_integrality_gap.py --output-dir paper/exp1 --results-dir paper/results_nested
+python3 experiments_nested/exp2_scalability.py --output-dir paper/exp2 --results-dir paper/results_nested
+python3 experiments_nested/exp3_risk_frontier.py --output-dir paper/exp3 --results-dir paper/results_nested
+python3 experiments_nested/exp4_summary_table.py --results-dir paper/results_nested --tables-dir paper/tables_nested
+python3 experiments_case_retail/case_retail_pricing.py --output-dir "paper/retail pricing" --results-dir paper/results_case
 ```
 
 Auxiliary validation and benchmark commands:
 
 ```bash
-python experiments_nested/exp1_integrality_gap.py --enable-milp --global-milp --output-dir paper/exp1 --results-dir paper/results_nested
-python experiments_nested/exp2_scalability.py --validate-lp --output-dir paper/exp2 --results-dir paper/results_nested
-python experiments_nested/exp4_summary_table.py --enable-milp --results-dir paper/results_nested --tables-dir paper/tables_nested
+python3 experiments_nested/exp1_integrality_gap.py --enable-milp --global-milp --output-dir paper/exp1 --results-dir paper/results_nested
+python3 experiments_nested/exp2_scalability.py --validate-lp --output-dir paper/exp2 --results-dir paper/results_nested
+python3 experiments_nested/exp4_summary_table.py --enable-milp --results-dir paper/results_nested --tables-dir paper/tables_nested
 ```
 
 Helpful optional flags:
