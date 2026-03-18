@@ -1,24 +1,24 @@
-# robust-mckp
+# robust_mckp
 
-Reference implementation of a robust hull-greedy solver for discrete pricing optimization under budgeted demand uncertainty, plus reproducible experiment scripts for the accompanying paper.
+Reference implementation and reproducibility artifact for the manuscript
+_Robust Discrete Pricing Optimization via Multiple-Choice Knapsack Reductions_.
 
-This repository contains:
+The repository contains:
 
-- A pip-installable Python package: `robust-mckp` (import: `robust_mckp`)
-- Reproduction scripts for the paper’s numerical experiments (`experiments_nested/`)
-- A stylized retail case study (`experiments_case_retail/`)
+- `src/robust_mckp/`: the solver package
+- `experiments_nested/`: scripts for the main numerical results
+- `experiments_case_retail/`: the stylized retail case study
+- `tests/`: smoke tests for the public API and solver/reference parity
 
-Legacy exploratory scripts in `experiments/` are **not** part of the paper reproduction workflow.
+## Scope
 
-## What Problem Is Solved?
-
-For each item group \(i\), choose one discrete option \(j\) with:
+For each item group \(i\), select one discrete option \(j\) with
 
 $$
 \begin{aligned}
-v_{ij} &= \omega_i x_{ij}\hat g_i(x_{ij}) \\
-s_{ij} &= \omega_i(x_{ij}-\Delta a_i)\hat g_i(x_{ij}) \\
-t_{ij} &= \omega_i(x_{ij}-\Delta a_i)\delta_i(x_{ij})
+v_{ij} &= \omega_i x_{ij}\hat g_i(x_{ij}), \\
+s_{ij} &= \omega_i(x_{ij}-\Delta a_i)\hat g_i(x_{ij}), \\
+t_{ij} &= \omega_i(x_{ij}-\Delta a_i)\delta_i(x_{ij}),
 \end{aligned}
 $$
 
@@ -26,56 +26,49 @@ and solve
 
 $$
 \max \sum_i v_{i,j(i)}
-\quad\text{s.t.}\quad
+\quad \text{s.t.} \quad
 \sum_i s_{i,j(i)} - \beta(x,\Gamma) \ge 0,
 $$
 
-where \(\beta(x,\Gamma)\) is the sum of the \(\Gamma\) largest values among \(\{|t_{i,j(i)}|\}\).
+where \(\beta(x,\Gamma)\) is the sum of the \(\Gamma\) largest values in
+\(\{|t_{i,j(i)}|\}\).
 
-The solver implements the paper’s Robust Hull-Greedy algorithm:
+The implemented algorithm follows the manuscript:
 
 1. Enumerate candidate \(\theta\) breakpoints.
-2. Solve each fixed-\(\theta\) LP relaxation exactly via upper-hull filtering + greedy filling.
-3. Recover a discrete solution by one-item rounding (with repair/completion heuristics).
-4. Certify exact robust feasibility using the original \(s,t\).
+2. Solve each fixed-\(\theta\) LP relaxation exactly via upper-hull filtering and greedy filling.
+3. Recover a discrete solution by feasibility-preserving rounding, with optional repair/completion.
+4. Certify exact robust feasibility using the original \(s,t\) coefficients.
 
 ## Installation
 
-### Package use (minimal)
+Minimal install from GitHub:
 
 ```bash
-pip install robust-mckp
+python -m pip install "git+https://github.com/eric939/robust_mckp.git"
 ```
 
-### Local development / paper reproduction (recommended)
-
-From the repository root:
+Local development and paper reproduction:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -U pip
-python -m pip install -e .
-python -m pip install matplotlib tqdm
+python -m pip install -e ".[experiments,validation,dev]"
 ```
 
-Optional (only needed for MILP / LP cross-validation in some experiments):
+Extras:
 
-```bash
-python -m pip install scipy
-```
-
-Notes:
-
-- Use `python` (or `./.venv/bin/python`) after activating `.venv`.
-- Do **not** force `/opt/homebrew/bin/python3` if you want the `.venv` packages.
+- `experiments`: plotting and progress bars
+- `validation`: SciPy-based LP and MILP cross-checks used by some scripts
+- `dev`: pytest
 
 ## Quickstart
 
-### Low-level API (precomputed \(v,s,t\))
+Low-level API:
 
 ```python
-from robust_mckp import PricingInstance, Option, solve
+from robust_mckp import Option, PricingInstance, solve
 
 instance = PricingInstance(
     items=[
@@ -88,14 +81,10 @@ instance = PricingInstance(
 )
 
 solution = solve(instance)
-print(solution.objective)
-print(solution.selections)
-print(solution.is_feasible)
-print(solution.theta)
-print(solution.certificate_value)
+print(solution.objective, solution.selections, solution.certificate_value)
 ```
 
-### High-level API (raw pricing inputs)
+High-level API from raw pricing inputs:
 
 ```python
 from robust_mckp import from_pricing_data, solve
@@ -114,147 +103,114 @@ instance = from_pricing_data(
 solution = solve(instance)
 ```
 
-## Public API
+Public API:
 
 - `Option(value, margin, uncertainty, price=None)`
 - `PricingInstance(items, gamma, name=None)`
 - `Solution(...)`
-- `from_pricing_data(...) -> PricingInstance`
-- `filter_admissible_options(...) -> PricingInstance`
-- `solve(instance: PricingInstance, *, upgrade_completion=True) -> Solution`
+- `from_pricing_data(...)`
+- `filter_admissible_options(...)`
+- `solve(instance, *, upgrade_completion=True)`
 
-`Solution` includes (among others):
+## Reproducing the Manuscript
 
-- `selections`
-- `objective`
-- `lp_value`
-- `gap_to_lp`
-- `certificate_value`
-- `theta`
-- `elapsed`
-- `is_feasible`
-- `metadata` (instrumentation/debug info)
+The repository now supports output paths that match the manuscript figure and table includes exactly.
 
-## Algorithm Notes (Implementation)
-
-This implementation includes exact practical speedups for \(\theta\)-enumeration:
-
-- Reduced \(\theta\)-candidate set via strong dominance in \((s, v, |t|)\)
-- Incremental sweep for baseline maximizers and capacity updates across sorted breakpoints
-
-The final robust feasibility check is always done with the exact certificate using original \(s,t\).
-
-## Complexity
-
-- Per \(\theta\): upper-hull filtering + LP greedy solve is dominated by \(O(nm\log m)\) hull work
-- Candidate set size is at most \(O(nm)\)
-- Worst-case total: \(O(n^2 m^2 \log m)\)
-
-In practice, hull compression and \(\theta\)-candidate reduction significantly reduce runtime.
-
-## Repository Layout
-
-- `src/robust_mckp/` — solver package
-- `tests/` — unit and integration tests
-- `examples/` — basic usage examples
-- `experiments_nested/` — **paper reproduction** (numerical results, nested-prefix design)
-- `experiments_case_retail/` — **paper reproduction** (stylized retail case study)
-- `experiments/` — legacy exploratory scripts (not used for paper reproduction)
-
-## Reproducing the Paper Experiments
-
-### 1) Nested numerical experiments (`experiments_nested/`)
-
-These correspond to the paper’s main numerical section (integrality gap, scalability, frontier, summary table) using the deterministic nested-prefix design.
-
-Run from repository root:
+Fast smoke reproduction:
 
 ```bash
-python experiments_nested/exp1_integrality_gap.py --output-dir figs --results-dir results_nested
-python experiments_nested/exp2_scalability.py --output-dir figs --results-dir results_nested
-python experiments_nested/exp3_risk_frontier.py --output-dir figs --results-dir results_nested
-python experiments_nested/exp4_summary_table.py --results-dir results_nested --tables-dir tables_nested
+make paper-fast
 ```
 
-Optional flags:
-
-- `--fast` for smoke checks
-- `--enable-milp` for MILP benchmarks (requires `scipy`)
-- `--global-milp` (Exp1) for exhaustive \(\theta\)-MILP on small instances
-- `--validate-lp` (Exp2) for LP cross-validation against HiGHS (`scipy`)
-
-### 2) Replot from saved results (no solver rerun)
+Full reproduction:
 
 ```bash
-python experiments_nested/replot_exp1_from_results.py --input-csv results_nested/exp1_gap.csv --output-dir figs
-python experiments_nested/replot_exp2_from_results.py --results-dir results_nested --output-dir figs
-python experiments_nested/replot_exp3_from_results.py --results-dir results_nested --output-dir figs
+make paper-all
 ```
 
-### 3) Stylized retail case study (`experiments_case_retail/`)
-
-This produces the figures and CSVs for the retail category pricing application.
+Validation and benchmark checks referenced in the manuscript:
 
 ```bash
-python experiments_case_retail/case_retail_pricing.py --output-dir figs --results-dir results_case
+make paper-validate
 ```
 
-Fast smoke run:
+These targets write outputs to:
+
+- `paper/exp1/`
+- `paper/exp2/`
+- `paper/exp3/`
+- `paper/retail pricing/`
+- `paper/results_nested/`
+- `paper/results_case/`
+- `paper/tables_nested/`
+
+See [`REPRODUCIBILITY.md`](REPRODUCIBILITY.md) for the section-by-section mapping to the manuscript.
+
+If you prefer running scripts directly:
 
 ```bash
-python experiments_case_retail/case_retail_pricing.py --fast --scenarios 2000
+python experiments_nested/exp1_integrality_gap.py --output-dir paper/exp1 --results-dir paper/results_nested
+python experiments_nested/exp2_scalability.py --output-dir paper/exp2 --results-dir paper/results_nested
+python experiments_nested/exp3_risk_frontier.py --output-dir paper/exp3 --results-dir paper/results_nested
+python experiments_nested/exp4_summary_table.py --results-dir paper/results_nested --tables-dir paper/tables_nested
+python experiments_case_retail/case_retail_pricing.py --output-dir "paper/retail pricing" --results-dir paper/results_case
 ```
 
-### Expected Figure Outputs (drop-in names)
+For the auxiliary benchmark statements in the manuscript:
 
-Nested experiments:
+```bash
+python experiments_nested/exp1_integrality_gap.py --enable-milp --global-milp --output-dir paper/exp1 --results-dir paper/results_nested
+python experiments_nested/exp2_scalability.py --validate-lp --output-dir paper/exp2 --results-dir paper/results_nested
+python experiments_nested/exp4_summary_table.py --enable-milp --results-dir paper/results_nested --tables-dir paper/tables_nested
+```
 
-- `figs/gap_loss_vs_n.pdf`
-- `figs/loss_vs_bound.pdf`
-- `figs/runtime_vs_n.pdf`
-- `figs/hull_sizes.pdf`
-- `figs/runtime_breakdown.pdf`
-- `figs/risk_frontier.pdf`
-- `figs/tail_margin.pdf`
-- `figs/tightness_heatmap.pdf`
+## Testing
 
-Retail case study:
+Run the smoke tests with:
 
-- `figs/case_frontier.pdf`
-- `figs/case_margin_dist.pdf`
+```bash
+make test
+```
 
-## Running Tests
+or
 
 ```bash
 python -m pytest -q
 ```
 
-If `pytest` is missing:
+## Repository Notes
 
-```bash
-python -m pip install pytest
-```
+- The optimized solver includes two exact speedups: strong dominance reduction in \((s, v, |t|)\) and an incremental \(\theta\)-sweep for baseline updates.
+- The exact certificate is always evaluated on the final discrete selection.
+- Default experiment seeds and parameter grids match the manuscript text.
+- The generated nested summary table follows the manuscript's published column layout; auxiliary MILP-gap data remain available in the CSV output.
 
 ## Citation
 
-If you use this code, please cite both:
+Please cite the repository and the accompanying manuscript. A machine-readable citation file is included at [`CITATION.cff`](CITATION.cff).
 
-- The accompanying pricing paper (this repository’s linked manuscript)
-- Bertsimas & Sim (2004) for the \(\Gamma\)-budget robust optimization model
+Software citation:
 
 ```bibtex
-@article{bertsimas2004price,
-  title={The Price of Robustness},
-  author={Bertsimas, Dimitris and Sim, Melvyn},
-  journal={Operations Research},
-  volume={52},
-  number={1},
-  pages={35--53},
-  year={2004}
+@misc{shao2026robustmckp,
+  title = {robust\_mckp: Reproducible code for robust discrete pricing via MCKP reductions},
+  author = {Shao, Eric},
+  year = {2026},
+  howpublished = {\url{https://github.com/eric939/robust_mckp}}
+}
+```
+
+Manuscript citation:
+
+```bibtex
+@misc{shao2026robustpricing,
+  title = {Robust Discrete Pricing Optimization via Multiple-Choice Knapsack Reductions},
+  author = {Shao, Eric},
+  year = {2026},
+  note = {Preprint}
 }
 ```
 
 ## License
 
-MIT (see `LICENSE`).
-
+MIT. See [`LICENSE`](LICENSE).

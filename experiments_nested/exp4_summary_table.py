@@ -1,4 +1,4 @@
-"""Nested-prefix Experiment 4: aggregate summary table rows for LaTeX placeholders."""
+"""Nested-prefix Experiment 4: manuscript-aligned aggregate summary table."""
 from __future__ import annotations
 
 import argparse
@@ -145,7 +145,7 @@ def main() -> None:
         writer.writeheader()
         writer.writerows(rows)
 
-    # Save LaTeX rows in a drop-in table body and a standalone tabular
+    # Save LaTeX rows in the manuscript's column order.
     rows_sorted = sorted(rows, key=lambda r: (int(r["n"]), float(r["alpha"])))
     body_path = tables_dir / "numerics_summary_rows.tex"
     with body_path.open("w") as f:
@@ -153,7 +153,7 @@ def main() -> None:
             f.write(
                 f"${int(r['n'])}$ & {float(r['alpha']):.2f} & ${int(r['gamma'])}$ & "
                 f"{float(r['time_s']):.3f} & {float(r['l_rd']):.6g} & {float(r['bound']):.6g} & "
-                f"{float(r['gap_lp']):.3e} & {r['milp_gap_display']} & "
+                f"{float(r['gap_lp']):.3e} & {float(r['rev_ratio']):.3f} & "
                 f"{float(r['viol_adv']):.3e} & {float(r['viol_iid']):.3e} \\\\\n"
             )
 
@@ -162,13 +162,13 @@ def main() -> None:
         f.write("% Auto-generated nested-prefix summary table\n")
         f.write("\\begin{tabular}{r r r r r r r r r r}\n")
         f.write("\\toprule\n")
-        f.write("$n$ & $\\alpha$ & $\\Gamma$ & Time (s) & $L_{\\mathrm{rd}}$ & $\\Delta V_{\\max}^\\theta$ & $\\mathrm{Gap}_{\\mathrm{LP}}$ & MILP gap & Viol. (adv.) & Viol. (iid) \\\\\n")
+        f.write("$n$ & $\\alpha$ & $\\Gamma$ & Time (s) & $L_{\\mathrm{rd}}$ & $\\Delta V_{\\max}^\\theta$ & $\\mathrm{Gap}_{\\mathrm{LP}}$ & Rev.\\ ratio & Viol. (adv.) & Viol. (iid) \\\\\n")
         f.write("\\midrule\n")
         for r in rows_sorted:
             f.write(
                 f"{int(r['n'])} & {float(r['alpha']):.2f} & {int(r['gamma'])} & "
                 f"{float(r['time_s']):.3f} & {float(r['l_rd']):.6g} & {float(r['bound']):.6g} & "
-                f"{float(r['gap_lp']):.3e} & {r['milp_gap_display']} & "
+                f"{float(r['gap_lp']):.3e} & {float(r['rev_ratio']):.3f} & "
                 f"{float(r['viol_adv']):.3e} & {float(r['viol_iid']):.3e} \\\\\n"
             )
         f.write("\\bottomrule\n")
@@ -181,4 +181,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
