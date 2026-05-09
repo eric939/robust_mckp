@@ -1,11 +1,10 @@
 # Reproducibility Guide
 
-This repository is organized so the generated outputs can be dropped directly into the manuscript
-_Robust Discrete Pricing Optimization via Multiple-Choice Knapsack Reductions_.
+This repository tracks solver and experiment code only. Generated result files,
+figures, tables, manuscript builds, and submission packages are intentionally
+left out of git so a clone starts from code and regenerates outputs locally.
 
-## Recommended workflow
-
-Create an environment and install all artifact dependencies:
+## Environment
 
 ```bash
 python3 -m venv .venv
@@ -14,107 +13,59 @@ python3 -m pip install -U pip
 python3 -m pip install -e ".[experiments,validation,dev]"
 ```
 
-Run the reduced-grid smoke artifact:
+Optional baselines use PySCIPOpt/SCIP and HiGHS when available. The core solver
+and smoke checks do not require commercial solvers.
+
+## Bounded Verification
 
 ```bash
-make paper-fast
+.venv/bin/python -m pytest -q
+.venv/bin/python scripts/run_clean_repro_check.py --quick
 ```
 
-This is a smoke check, not an instant run; it still evaluates reduced but nontrivial grids.
+The bounded check verifies imports and tests, py-compiles the experiment
+scripts, runs a small publication benchmark, creates synthetic Path C
+calibration data, and runs a small semi-synthetic pricing experiment. Outputs
+are written under `results/clean_repro_check/`.
 
-Run the full manuscript artifact:
+For a clean-copy check:
 
 ```bash
-make paper-all
+.venv/bin/python scripts/run_true_clean_room_check.py --work-dir /tmp/robust_mckp_clean_check --quick
 ```
 
-Run the auxiliary validation and benchmark checks cited in the manuscript:
+This copies the repository to a temporary directory, installs it in a fresh
+virtual environment, and runs the same bounded checks there.
+
+## Experiment Entry Points
+
+Synthetic robust-MCKP smoke benchmark:
 
 ```bash
-make paper-validate
+.venv/bin/python scripts/run_publication_benchmarks.py --smoke --output-dir results/publication_benchmarks_smoke
 ```
 
-## Output mapping
-
-The commands above produce the exact output paths expected by the manuscript.
-
-### Main numerical section
-
-- `paper/exp1/gap_loss_vs_n.pdf`
-  Used for the left panel of `\Cref{fig:gap_decay}`.
-- `paper/exp1/loss_vs_bound.pdf`
-  Used for the right panel of `\Cref{fig:gap_decay}`.
-- `paper/exp2/runtime_vs_n.pdf`
-  Used for panel (a) of `\Cref{fig:scalability}`.
-- `paper/exp2/hull_sizes.pdf`
-  Used for panel (b) of `\Cref{fig:scalability}`.
-- `paper/exp2/runtime_breakdown.pdf`
-  Used for panel (c) of `\Cref{fig:scalability}`.
-- `paper/exp3/risk_frontier.pdf`
-  Used for panel (a) of `\Cref{fig:risk_frontier}`.
-- `paper/exp3/tail_margin.pdf`
-  Used for panel (b) of `\Cref{fig:risk_frontier}`.
-- `paper/exp3/tightness_heatmap.pdf`
-  Used for panel (c) of `\Cref{fig:risk_frontier}`.
-- `paper/tables_nested/numerics_summary.tex`
-  Standalone LaTeX tabular for `\Cref{tab:numerics_summary}`.
-- `paper/tables_nested/numerics_summary_rows.tex`
-  Table rows only, if you prefer to embed them in an existing table environment.
-
-### Retail case study
-
-- `paper/retail pricing/case_frontier.pdf`
-  Used for panel (a) of `\Cref{fig:case_study}`.
-- `paper/retail pricing/case_margin_dist.pdf`
-  Used for panel (b) of `\Cref{fig:case_study}`.
-
-## Script-level commands
-
-If you do not want to use the `Makefile`, run:
+Publishable synthetic/retail experiment bundle:
 
 ```bash
-python3 experiments_nested/exp1_integrality_gap.py --output-dir paper/exp1 --results-dir paper/results_nested
-python3 experiments_nested/exp2_scalability.py --output-dir paper/exp2 --results-dir paper/results_nested
-python3 experiments_nested/exp3_risk_frontier.py --output-dir paper/exp3 --results-dir paper/results_nested
-python3 experiments_nested/exp4_summary_table.py --results-dir paper/results_nested --tables-dir paper/tables_nested
-python3 experiments_case_retail/case_retail_pricing.py --output-dir "paper/retail pricing" --results-dir paper/results_case
+.venv/bin/python scripts/run_publishable_experiments.py --smoke
+.venv/bin/python scripts/run_solver_benchmarks.py --smoke
+.venv/bin/python scripts/plot_publishable_results.py
 ```
 
-Auxiliary validation and benchmark commands:
+Semi-synthetic pricing application:
 
 ```bash
-python3 experiments_nested/exp1_integrality_gap.py --enable-milp --global-milp --output-dir paper/exp1 --results-dir paper/results_nested
-python3 experiments_nested/exp2_scalability.py --validate-lp --output-dir paper/exp2 --results-dir paper/results_nested
-python3 experiments_nested/exp4_summary_table.py --enable-milp --results-dir paper/results_nested --tables-dir paper/tables_nested
+.venv/bin/python scripts/run_pathC_data_calibration.py --source synthetic_only --output-dir results/pathC/calibration
+.venv/bin/python scripts/run_pathC_semisynthetic_application.py --calibration-dir results/pathC/calibration --output-dir results/pathC/semisynthetic_application_smoke --seeds 1 --n 60 --m 8 --stress-scenarios 200 --gamma-grid 0,sqrt,n --run-exact-small-subset
 ```
 
-Helpful optional flags:
-
-- `--fast`
-  Reduced grids for smoke checks.
-- `--enable-milp`
-  Enables SciPy-based fixed-\(\theta\) MILP benchmarks where implemented.
-- `--global-milp`
-  Exhaustive \(\theta\)-MILP benchmark in Experiment 1 on small instances.
-- `--validate-lp`
-  LP cross-validation against HiGHS in Experiment 2.
-
-## Determinism
-
-- The nested experiments use a deterministic master seed of `42` by default.
-- The nested-prefix construction matches the manuscript protocol: every larger instance extends the smaller one by adding items, rather than resampling the full portfolio.
-- The case study also defaults to seed `42`.
-
-## Verification
-
-Run the solver smoke tests before or after reproducing figures:
+Diagnostics:
 
 ```bash
-make test
+.venv/bin/python scripts/run_branching_strategy_diagnostics.py
+.venv/bin/python scripts/run_tight_capacity_diagnostics.py
 ```
 
-The tests cover:
-
-- public low-level API solve/certificate consistency
-- admissible-menu filtering in the preprocessing layer
-- parity between the optimized solver and the naive reference implementation on a fixed small instance
+Most scripts accept `--output-dir` or related path options. Use those options to
+keep new outputs separate from previous local runs.

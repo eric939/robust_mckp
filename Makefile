@@ -1,6 +1,6 @@
 PYTHON ?= python3
 
-.PHONY: install-dev test paper-fast paper-nested paper-case paper-all paper-validate clean-paper
+.PHONY: install-dev test check clean-check publishable-smoke solver-smoke pathc-smoke clean
 
 install-dev:
 	$(PYTHON) -m pip install -U pip
@@ -9,28 +9,23 @@ install-dev:
 test:
 	$(PYTHON) -m pytest -q
 
-paper-fast:
-	$(PYTHON) experiments_nested/exp1_integrality_gap.py --fast --output-dir paper/exp1 --results-dir paper/results_nested
-	$(PYTHON) experiments_nested/exp2_scalability.py --fast --output-dir paper/exp2 --results-dir paper/results_nested
-	$(PYTHON) experiments_nested/exp3_risk_frontier.py --fast --output-dir paper/exp3 --results-dir paper/results_nested
-	$(PYTHON) experiments_nested/exp4_summary_table.py --fast --results-dir paper/results_nested --tables-dir paper/tables_nested
-	$(PYTHON) experiments_case_retail/case_retail_pricing.py --fast --scenarios 2000 --output-dir "paper/retail pricing" --results-dir paper/results_case
+check:
+	$(PYTHON) -m pytest -q
+	$(PYTHON) scripts/run_clean_repro_check.py --quick
 
-paper-nested:
-	$(PYTHON) experiments_nested/exp1_integrality_gap.py --output-dir paper/exp1 --results-dir paper/results_nested
-	$(PYTHON) experiments_nested/exp2_scalability.py --output-dir paper/exp2 --results-dir paper/results_nested
-	$(PYTHON) experiments_nested/exp3_risk_frontier.py --output-dir paper/exp3 --results-dir paper/results_nested
-	$(PYTHON) experiments_nested/exp4_summary_table.py --results-dir paper/results_nested --tables-dir paper/tables_nested
+clean-check:
+	$(PYTHON) scripts/run_clean_repro_check.py --quick
 
-paper-case:
-	$(PYTHON) experiments_case_retail/case_retail_pricing.py --output-dir "paper/retail pricing" --results-dir paper/results_case
+publishable-smoke:
+	$(PYTHON) scripts/run_publication_benchmarks.py --smoke --output-dir results/publication_benchmarks_smoke
+	$(PYTHON) scripts/run_publishable_experiments.py --smoke
 
-paper-all: paper-nested paper-case
+solver-smoke:
+	$(PYTHON) scripts/run_solver_benchmarks.py --smoke
 
-paper-validate:
-	$(PYTHON) experiments_nested/exp1_integrality_gap.py --enable-milp --global-milp --output-dir paper/exp1 --results-dir paper/results_nested
-	$(PYTHON) experiments_nested/exp2_scalability.py --validate-lp --output-dir paper/exp2 --results-dir paper/results_nested
-	$(PYTHON) experiments_nested/exp4_summary_table.py --enable-milp --results-dir paper/results_nested --tables-dir paper/tables_nested
+pathc-smoke:
+	$(PYTHON) scripts/run_pathC_data_calibration.py --source synthetic_only --output-dir results/pathC/calibration
+	$(PYTHON) scripts/run_pathC_semisynthetic_application.py --calibration-dir results/pathC/calibration --output-dir results/pathC/semisynthetic_application_smoke --seeds 1 --n 60 --m 8 --stress-scenarios 200 --gamma-grid 0,sqrt,n --run-exact-small-subset
 
-clean-paper:
-	rm -rf paper/exp1 paper/exp2 paper/exp3 "paper/retail pricing" paper/results_case paper/results_nested paper/tables_nested
+clean:
+	rm -rf results paper .pytest_cache

@@ -6,17 +6,17 @@ version: "0.1.0"
 license: "MIT"
 repository-code: "https://github.com/eric939/robust_mckp"
 url: "https://github.com/eric939/robust_mckp"
-date-released: 2026-03-18
+date-released: 2026-05-09
 authors:
   - family-names: "Shao"
     given-names: "Eric"
-    affiliation: "Department of Mathematics, ETH Zurich"
+    affiliation: "Department of Mathematics, ETH Zürich"
     email: "ershao@student.ethz.ch"
 preferred-citation:
   type: article
-  title: "Robust Discrete Pricing Optimization via Multiple-Choice Knapsack Reductions"
+  title: "Structure-Exploiting Algorithms for Gamma-Robust Multiple-Choice Knapsack with an Application to Discrete Pricing"
   year: 2026
-  journal: "Preprint"
+  journal: "Manuscript submitted for publication"
   authors:
     - family-names: "Shao"
       given-names: "Eric"
