@@ -28,6 +28,11 @@ def test_low_level_api_returns_feasible_solution() -> None:
     assert len(solution.selections) == instance.n_items
     assert solution.objective > 0.0
     assert compute_certificate(instance, solution.selections) == pytest.approx(solution.certificate_value)
+    instr = solution.metadata["instrumentation"]
+    assert instr["selected_theta_delta_v_max"] >= 0.0
+    assert instr["selected_theta_delta_v_max_over_lp_upper_bound"] >= 0.0
+    assert instr["selected_theta_lp_minus_round_down"] <= instr["selected_theta_delta_v_max"] + 1e-8
+    assert instr["selected_theta_lp_minus_round_down_over_lp_upper_bound"] >= -1e-8
 
 
 def test_from_pricing_data_filters_to_admissible_options() -> None:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run fixed-theta exact B&B benchmarks for the Path A prototype."""
+"""Run fixed-θ exact B&B benchmarks for the Path A prototype."""
 from __future__ import annotations
 
 import argparse
@@ -278,7 +278,7 @@ def write_outputs(rows: Sequence[Dict[str, object]], args: argparse.Namespace) -
     nodes = [int(r["bnb_nodes_explored"]) for r in rows]
 
     lines = [
-        "# Fixed-theta B&B benchmark summary",
+        "# Fixed-$\\theta$ B&B benchmark summary",
         "",
         f"Rows: {len(rows)}",
         f"B&B optimal: {len(optimal)}",

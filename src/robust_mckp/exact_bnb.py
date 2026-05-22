@@ -38,6 +38,8 @@ class FixedThetaBNBConfig:
     use_local_incumbent_improvement: bool = False
     local_search_max_passes: int = 2
     local_search_max_swaps: int = 1000
+    local_search_neighborhood: str = "single"
+    local_search_max_pair_evaluations: int = 20000
     use_greedy_incumbent: bool = True
     objective_cutoff: Optional[float] = None
     initial_incumbent_value: Optional[float] = None
@@ -120,6 +122,11 @@ class GlobalThetaBNBConfig:
     use_local_incumbent_improvement: bool = False
     local_search_max_passes: int = 2
     local_search_max_swaps: int = 1000
+    local_search_neighborhood: str = "single"
+    local_search_max_pair_evaluations: int = 20000
+    use_multistart_incumbent: bool = False
+    multistart_theta_count: int = 8
+    multistart_use_local_improvement: bool = True
     collect_diagnostics: bool = False
     max_diagnostic_nodes: int = 20000
     diagnostic_sample_rate: int = 1
@@ -621,6 +628,8 @@ def _make_result(
             "use_local_incumbent_improvement": config.use_local_incumbent_improvement,
             "local_search_max_passes": config.local_search_max_passes,
             "local_search_max_swaps": config.local_search_max_swaps,
+            "local_search_neighborhood": config.local_search_neighborhood,
+            "local_search_max_pair_evaluations": config.local_search_max_pair_evaluations,
             "use_greedy_incumbent": config.use_greedy_incumbent,
             "objective_cutoff": config.objective_cutoff,
             "initial_incumbent_value": config.initial_incumbent_value,
@@ -714,17 +723,28 @@ def _local_improve_incumbent(
     *,
     max_passes: int = 2,
     max_swaps: int = 1000,
-) -> Tuple[List[int], float, float, int]:
-    """Deterministic one-item local improvement for a fixed-theta incumbent."""
+    neighborhood: str = "single",
+    max_pair_evaluations: int = 20000,
+) -> Tuple[List[int], float, float, int, int]:
+    """Deterministic local improvement for a fixed-theta incumbent.
+
+    The optional two-item neighborhood is exact-safe because it only replaces
+    the incumbent by a strictly higher-value selection that is explicitly
+    checked against the same fixed-theta capacity. Global robust incumbents are
+    still validated separately against the original robust certificate.
+    """
 
     improved = list(map(int, selections))
     used = cost_for_selection(costs, improved)
     value = objective_for_selection(values, improved)
     if used > capacity + tol:
-        return improved, value, used, 0
+        return improved, value, used, 0, 0
     swaps = 0
+    pair_evaluations = 0
+    allow_two_item = str(neighborhood).lower() in {"single_two", "two_item", "two-item", "pair"}
     for _pass in range(max(0, int(max_passes))):
-        best_move: Optional[Tuple[float, float, float, int, int]] = None
+        best_score: Optional[Tuple[float, ...]] = None
+        best_move: Optional[Tuple[object, ...]] = None
         for i, opts in enumerate(option_sets):
             cur = improved[i]
             cur_cost = float(costs[i][cur])
@@ -740,19 +760,105 @@ def _local_improve_incumbent(
                     continue
                 dc = float(costs[i][j]) - cur_cost
                 # Prefer larger value gain, then lower cost increase, then stable item/option order.
-                candidate = (dv, -max(0.0, dc), -abs(dc), -int(i), -int(j))
-                if best_move is None or candidate > best_move:
-                    best_move = candidate
+                score = (float(dv), -max(0.0, float(dc)), -abs(float(dc)), -float(i), -float(j))
+                if best_score is None or score > best_score:
+                    best_score = score
+                    best_move = ("single", int(i), int(j))
+        if allow_two_item and pair_evaluations < max(0, int(max_pair_evaluations)):
+            n_items = len(option_sets)
+            stop_pairs = False
+            for i in range(n_items):
+                cur_i = improved[i]
+                cur_cost_i = float(costs[i][cur_i])
+                cur_value_i = float(values[i][cur_i])
+                for k in range(i + 1, n_items):
+                    cur_k = improved[k]
+                    cur_cost_k = float(costs[k][cur_k])
+                    cur_value_k = float(values[k][cur_k])
+                    for j in option_sets[i]:
+                        if int(j) == cur_i:
+                            continue
+                        for ell in option_sets[k]:
+                            if int(ell) == cur_k:
+                                continue
+                            pair_evaluations += 1
+                            new_cost = (
+                                used
+                                - cur_cost_i
+                                - cur_cost_k
+                                + float(costs[i][j])
+                                + float(costs[k][ell])
+                            )
+                            if new_cost > capacity + tol:
+                                if pair_evaluations >= max(0, int(max_pair_evaluations)):
+                                    stop_pairs = True
+                                    break
+                                continue
+                            dv = (
+                                float(values[i][j])
+                                - cur_value_i
+                                + float(values[k][ell])
+                                - cur_value_k
+                            )
+                            if dv <= tol:
+                                if pair_evaluations >= max(0, int(max_pair_evaluations)):
+                                    stop_pairs = True
+                                    break
+                                continue
+                            dc = new_cost - used
+                            score = (
+                                float(dv),
+                                -max(0.0, float(dc)),
+                                -abs(float(dc)),
+                                -float(i),
+                                -float(j),
+                                -float(k),
+                                -float(ell),
+                            )
+                            if best_score is None or score > best_score:
+                                best_score = score
+                                best_move = ("pair", int(i), int(j), int(k), int(ell))
+                            if pair_evaluations >= max(0, int(max_pair_evaluations)):
+                                stop_pairs = True
+                                break
+                        if stop_pairs:
+                            break
+                    if stop_pairs:
+                        break
+                if stop_pairs:
+                    break
         if best_move is None or swaps >= max(0, int(max_swaps)):
             break
-        _dv, _neg_pos_dc, _neg_abs_dc, neg_i, neg_j = best_move
-        i = -neg_i
-        j = -neg_j
-        used = used - float(costs[i][improved[i]]) + float(costs[i][j])
-        value = value - float(values[i][improved[i]]) + float(values[i][j])
-        improved[i] = int(j)
+        move_type = str(best_move[0])
+        if move_type == "pair":
+            i = int(best_move[1])
+            j = int(best_move[2])
+            k = int(best_move[3])
+            ell = int(best_move[4])
+            used = (
+                used
+                - float(costs[i][improved[i]])
+                - float(costs[k][improved[k]])
+                + float(costs[i][j])
+                + float(costs[k][ell])
+            )
+            value = (
+                value
+                - float(values[i][improved[i]])
+                - float(values[k][improved[k]])
+                + float(values[i][j])
+                + float(values[k][ell])
+            )
+            improved[i] = int(j)
+            improved[k] = int(ell)
+        else:
+            i = int(best_move[1])
+            j = int(best_move[2])
+            used = used - float(costs[i][improved[i]]) + float(costs[i][j])
+            value = value - float(values[i][improved[i]]) + float(values[i][j])
+            improved[i] = int(j)
         swaps += 1
-    return improved, float(value), float(used), int(swaps)
+    return improved, float(value), float(used), int(swaps), int(pair_evaluations)
 
 
 def _build_free_hulls(
@@ -1275,6 +1381,7 @@ def solve_fixed_theta_bnb(
         "average_bound_reduction": 0.0,
         "selected_item_score": float("nan"),
         "local_incumbent_swaps": 0,
+        "local_incumbent_pair_evaluations": 0,
         "local_incumbent_improved": False,
     }
     try:
@@ -1369,7 +1476,7 @@ def solve_fixed_theta_bnb(
                 incumbent_value = val
                 incumbent_cost = used
         if cfg.use_local_incumbent_improvement and incumbent_selection is not None:
-            improved, improved_value, improved_cost, swaps = _local_improve_incumbent(
+            improved, improved_value, improved_cost, swaps, pair_evaluations = _local_improve_incumbent(
                 values,
                 costs,
                 option_sets,
@@ -1378,8 +1485,11 @@ def solve_fixed_theta_bnb(
                 tol,
                 max_passes=cfg.local_search_max_passes,
                 max_swaps=cfg.local_search_max_swaps,
+                neighborhood=cfg.local_search_neighborhood,
+                max_pair_evaluations=cfg.local_search_max_pair_evaluations,
             )
             diagnostics["local_incumbent_swaps"] = int(diagnostics["local_incumbent_swaps"]) + int(swaps)
+            diagnostics["local_incumbent_pair_evaluations"] = int(diagnostics["local_incumbent_pair_evaluations"]) + int(pair_evaluations)
             if improved_value > incumbent_value + tol:
                 incumbent_selection = improved
                 incumbent_value = improved_value
@@ -1544,7 +1654,7 @@ def solve_fixed_theta_bnb(
                 _diag_inc(diagnostics, "nodes_integral_lp")
                 sel, val, used = integral
                 if cfg.use_local_incumbent_improvement:
-                    improved, improved_value, improved_cost, swaps = _local_improve_incumbent(
+                    improved, improved_value, improved_cost, swaps, pair_evaluations = _local_improve_incumbent(
                         values,
                         costs,
                         option_sets,
@@ -1553,8 +1663,11 @@ def solve_fixed_theta_bnb(
                         tol,
                         max_passes=cfg.local_search_max_passes,
                         max_swaps=cfg.local_search_max_swaps,
+                        neighborhood=cfg.local_search_neighborhood,
+                        max_pair_evaluations=cfg.local_search_max_pair_evaluations,
                     )
                     diagnostics["local_incumbent_swaps"] = int(diagnostics["local_incumbent_swaps"]) + int(swaps)
+                    diagnostics["local_incumbent_pair_evaluations"] = int(diagnostics["local_incumbent_pair_evaluations"]) + int(pair_evaluations)
                     if improved_value > val + tol:
                         sel, val, used = improved, improved_value, improved_cost
                         diagnostics["local_incumbent_improved"] = True
@@ -1885,6 +1998,11 @@ def _global_result(
             "use_local_incumbent_improvement": config.use_local_incumbent_improvement,
             "local_search_max_passes": config.local_search_max_passes,
             "local_search_max_swaps": config.local_search_max_swaps,
+            "local_search_neighborhood": config.local_search_neighborhood,
+            "local_search_max_pair_evaluations": config.local_search_max_pair_evaluations,
+            "use_multistart_incumbent": config.use_multistart_incumbent,
+            "multistart_theta_count": config.multistart_theta_count,
+            "multistart_use_local_improvement": config.multistart_use_local_improvement,
             "collect_diagnostics": config.collect_diagnostics,
             "max_diagnostic_nodes": config.max_diagnostic_nodes,
             "diagnostic_sample_rate": config.diagnostic_sample_rate,
@@ -1904,7 +2022,14 @@ def solve_global_theta_bnb(
     instance: PricingInstance,
     config: Optional[GlobalThetaBNBConfig] = None,
 ) -> GlobalThetaBNBResult:
-    """Solve the global Gamma-robust MCKP by exact full theta enumeration."""
+    """Solve the global Gamma-robust MCKP by exact full theta enumeration.
+
+    A finite global gap is reported only after every theta candidate has a
+    valid root upper-bound record.  The implementation initializes those
+    records before the limited search loop: feasible fixed-theta rows receive
+    the hull-greedy root LP bound, and rows with negative fixed-theta capacity
+    or an infeasible root receive ``-inf``.
+    """
 
     cfg = config or GlobalThetaBNBConfig()
     tol = float(cfg.tolerance)
@@ -1973,11 +2098,42 @@ def solve_global_theta_bnb(
             message=f"unsupported theta_order={cfg.theta_order}",
         )
 
-    ordered_candidates = list(candidates)
-    if cfg.theta_order in {"lp_bound_desc", "hybrid", "heuristic_incumbent_desc"}:
-        for theta in candidates:
-            get_lp_bound(theta)
-        ordered_candidates = sorted(
+    # Gap-accounting invariant: before any finite global anytime gap can be
+    # reported, every theta has an initialized upper-bound record.  This also
+    # makes increasing-order limited runs as auditable as LP-bound-ordered runs.
+    ub_init_start = time.perf_counter()
+    for theta in candidates:
+        get_lp_bound(theta)
+    valid_ub_count = 0
+    invalid_ub_thetas: List[float] = []
+    for theta in candidates:
+        lp = lp_bound_by_theta[float(theta)]
+        ub = float(lp.lp_upper_bound)
+        if math.isfinite(ub) or (math.isinf(ub) and ub < 0.0):
+            valid_ub_count += 1
+        else:
+            invalid_ub_thetas.append(float(theta))
+    diagnostics.update(
+        {
+            "theta_upper_bound_records_initialized": True,
+            "theta_upper_bound_record_count": int(len(lp_bound_by_theta)),
+            "theta_upper_bound_valid_record_count": int(valid_ub_count),
+            "theta_upper_bound_missing_count": int(max(0, len(candidates) - len(lp_bound_by_theta))),
+            "theta_upper_bound_invalid_count": int(len(invalid_ub_thetas)),
+            "theta_upper_bound_initialization_policy": "root_lp_for_all_theta",
+            "theta_upper_bound_initialization_time_seconds": float(time.perf_counter() - ub_init_start),
+            "theta_upper_bound_invalid_thetas": invalid_ub_thetas[:20],
+        }
+    )
+
+    if cfg.use_multistart_incumbent and candidates:
+        seed_start = time.perf_counter()
+        seed_evaluated = 0
+        seed_fixed_feasible = 0
+        seed_robust_feasible = 0
+        seed_improvements = 0
+        seed_pair_evaluations = 0
+        ranked_all = sorted(
             candidates,
             key=lambda th: (
                 float("-inf") if not math.isfinite(get_lp_bound(th).lp_upper_bound) else get_lp_bound(th).lp_upper_bound,
@@ -1985,6 +2141,172 @@ def solve_global_theta_bnb(
             ),
             reverse=True,
         )
+        max_root_lp_bound = max(
+            [float("-inf")]
+            + [float(get_lp_bound(th).lp_upper_bound) for th in ranked_all if math.isfinite(get_lp_bound(th).lp_upper_bound)]
+        )
+        multistart_skipped_closed = bool(math.isfinite(incumbent_value) and incumbent_value >= max_root_lp_bound - tol)
+        ranked_for_seed = [] if multistart_skipped_closed else ranked_all[: max(0, int(cfg.multistart_theta_count))]
+        for seed_theta in ranked_for_seed:
+            lp = get_lp_bound(seed_theta)
+            if lp.infeasible_capacity or not lp.lp_feasible:
+                continue
+            cache = get_cache(seed_theta)
+            sel, val, _used = _greedy_incumbent(cache.data.values, cache.data.costs, cache.option_sets, cache.data.capacity, tol)
+            seed_evaluated += 1
+            if sel is None:
+                continue
+            seed_fixed_feasible += 1
+            if cfg.multistart_use_local_improvement:
+                sel, val, _used, swaps, pair_evals = _local_improve_incumbent(
+                    cache.data.values,
+                    cache.data.costs,
+                    cache.option_sets,
+                    cache.data.capacity,
+                    sel,
+                    tol,
+                    max_passes=cfg.local_search_max_passes,
+                    max_swaps=cfg.local_search_max_swaps,
+                    neighborhood=cfg.local_search_neighborhood,
+                    max_pair_evaluations=cfg.local_search_max_pair_evaluations,
+                )
+                seed_pair_evaluations += int(pair_evals)
+                if swaps:
+                    diagnostics["multistart_local_swaps"] = int(diagnostics.get("multistart_local_swaps", 0)) + int(swaps)
+            flags = validate_fixed_theta_selection(cache.data.values, cache.data.costs, cache.data.capacity, sel, tol)
+            if not (flags["valid_length"] and flags["valid_indices"] and flags["capacity_feasible"]):
+                continue
+            cert = compute_certificate(instance, sel)
+            if cert < -tol:
+                continue
+            seed_robust_feasible += 1
+            if val > incumbent_value + tol:
+                incumbent_selection = list(map(int, sel))
+                incumbent_value = float(val)
+                incumbent_theta = float(seed_theta)
+                seed_improvements += 1
+        diagnostics.update(
+            {
+                "multistart_incumbent_enabled": True,
+                "multistart_theta_count_requested": int(cfg.multistart_theta_count),
+                "multistart_skipped_existing_incumbent_closes_root_bound": bool(multistart_skipped_closed),
+                "multistart_max_root_lp_bound": float(max_root_lp_bound),
+                "multistart_theta_count_evaluated": int(seed_evaluated),
+                "multistart_fixed_feasible_count": int(seed_fixed_feasible),
+                "multistart_robust_feasible_count": int(seed_robust_feasible),
+                "multistart_incumbent_improvements": int(seed_improvements),
+                "multistart_pair_evaluations": int(seed_pair_evaluations),
+                "multistart_time_seconds": float(time.perf_counter() - seed_start),
+                "multistart_final_incumbent_value": float(incumbent_value),
+            }
+        )
+    else:
+        diagnostics.update(
+            {
+                "multistart_incumbent_enabled": False,
+                "multistart_theta_count_evaluated": 0,
+                "multistart_fixed_feasible_count": 0,
+                "multistart_robust_feasible_count": 0,
+                "multistart_incumbent_improvements": 0,
+                "multistart_pair_evaluations": 0,
+                "multistart_time_seconds": 0.0,
+            }
+        )
+
+    ordered_candidates = list(candidates)
+    heuristic_order_scores: Dict[float, Tuple[float, float, float]] = {}
+    if cfg.theta_order in {"heuristic_incumbent_desc", "hybrid"}:
+        heuristic_start = time.perf_counter()
+        heuristic_evaluated = 0
+        heuristic_fixed_feasible = 0
+        heuristic_robust_feasible = 0
+        heuristic_incumbent_improvements = 0
+        for theta in candidates:
+            lp = get_lp_bound(theta)
+            lp_score = float("-inf") if not math.isfinite(lp.lp_upper_bound) else float(lp.lp_upper_bound)
+            robust_value = float("-inf")
+            if not lp.infeasible_capacity and lp.lp_feasible:
+                heuristic_evaluated += 1
+                cache = get_cache(theta)
+                sel, val, _used = _greedy_incumbent(
+                    cache.data.values,
+                    cache.data.costs,
+                    cache.option_sets,
+                    cache.data.capacity,
+                    tol,
+                )
+                if sel is not None:
+                    flags = validate_fixed_theta_selection(cache.data.values, cache.data.costs, cache.data.capacity, sel, tol)
+                    if flags["valid_length"] and flags["valid_indices"] and flags["capacity_feasible"]:
+                        heuristic_fixed_feasible += 1
+                        cert = compute_certificate(instance, sel)
+                        if cert >= -tol:
+                            heuristic_robust_feasible += 1
+                            robust_value = float(val)
+                            if robust_value > incumbent_value + tol:
+                                incumbent_selection = list(map(int, sel))
+                                incumbent_value = robust_value
+                                incumbent_theta = float(theta)
+                                heuristic_incumbent_improvements += 1
+            heuristic_order_scores[float(theta)] = (robust_value, lp_score, -float(theta))
+        diagnostics.update(
+            {
+                "heuristic_theta_order_enabled": True,
+                "heuristic_theta_order_evaluated": int(heuristic_evaluated),
+                "heuristic_theta_order_fixed_feasible": int(heuristic_fixed_feasible),
+                "heuristic_theta_order_robust_feasible": int(heuristic_robust_feasible),
+                "heuristic_theta_order_incumbent_improvements": int(heuristic_incumbent_improvements),
+                "heuristic_theta_order_time_seconds": float(time.perf_counter() - heuristic_start),
+                "heuristic_theta_order_final_incumbent_value": float(incumbent_value),
+            }
+        )
+    else:
+        diagnostics.update(
+            {
+                "heuristic_theta_order_enabled": False,
+                "heuristic_theta_order_evaluated": 0,
+                "heuristic_theta_order_fixed_feasible": 0,
+                "heuristic_theta_order_robust_feasible": 0,
+                "heuristic_theta_order_incumbent_improvements": 0,
+                "heuristic_theta_order_time_seconds": 0.0,
+            }
+        )
+
+    if cfg.theta_order in {"lp_bound_desc", "hybrid", "heuristic_incumbent_desc"}:
+        for theta in candidates:
+            get_lp_bound(theta)
+        if cfg.theta_order == "heuristic_incumbent_desc":
+            ordered_candidates = sorted(
+                candidates,
+                key=lambda th: heuristic_order_scores.get(
+                    float(th),
+                    (
+                        float("-inf"),
+                        float("-inf") if not math.isfinite(get_lp_bound(th).lp_upper_bound) else get_lp_bound(th).lp_upper_bound,
+                        -float(th),
+                    ),
+                ),
+                reverse=True,
+            )
+        elif cfg.theta_order == "hybrid":
+            ordered_candidates = sorted(
+                candidates,
+                key=lambda th: (
+                    float("-inf") if not math.isfinite(get_lp_bound(th).lp_upper_bound) else get_lp_bound(th).lp_upper_bound,
+                    heuristic_order_scores.get(float(th), (float("-inf"), float("-inf"), -float(th)))[0],
+                    -float(th),
+                ),
+                reverse=True,
+            )
+        else:
+            ordered_candidates = sorted(
+                candidates,
+                key=lambda th: (
+                    float("-inf") if not math.isfinite(get_lp_bound(th).lp_upper_bound) else get_lp_bound(th).lp_upper_bound,
+                    -float(th),
+                ),
+                reverse=True,
+            )
 
     for idx, theta in enumerate(ordered_candidates):
         elapsed = time.perf_counter() - start
@@ -2045,6 +2367,36 @@ def solve_global_theta_bnb(
 
         incumbent_before = incumbent_value
         lp_bound = get_lp_bound(theta)
+        if (
+            lp_bound.root_lp_status == "error"
+            or math.isnan(float(lp_bound.lp_upper_bound))
+            or (math.isinf(float(lp_bound.lp_upper_bound)) and float(lp_bound.lp_upper_bound) > 0.0)
+        ):
+            theta_upper_bounds.append(float("inf"))
+            if interruption_status is None:
+                interruption_status = "error"
+                message = lp_bound.message or "fixed-theta root LP upper-bound initialization failed"
+            records.append(
+                GlobalThetaRecord(
+                    theta=float(theta),
+                    status="error",
+                    fixed_theta_capacity=lp_bound.capacity,
+                    fixed_theta_lp_upper_bound=lp_bound.lp_upper_bound,
+                    incumbent_before_theta=incumbent_before,
+                    bnb_objective=float("-inf"),
+                    bnb_upper_bound=float("inf"),
+                    bnb_gap=float("inf"),
+                    nodes_explored=0,
+                    runtime_seconds=0.0,
+                    pruned_by_bound=False,
+                    infeasible_capacity=False,
+                    root_lp_status=lp_bound.root_lp_status,
+                    incumbent_after_theta=incumbent_value,
+                    root_lp_runtime_seconds=lp_bound.runtime_seconds,
+                    diagnostics={"root_lp_message": lp_bound.message},
+                )
+            )
+            continue
         if lp_bound.infeasible_capacity or not lp_bound.lp_feasible:
             theta_upper_bounds.append(float("-inf"))
             records.append(
@@ -2140,6 +2492,8 @@ def solve_global_theta_bnb(
                 use_local_incumbent_improvement=cfg.use_local_incumbent_improvement,
                 local_search_max_passes=cfg.local_search_max_passes,
                 local_search_max_swaps=cfg.local_search_max_swaps,
+                local_search_neighborhood=cfg.local_search_neighborhood,
+                local_search_max_pair_evaluations=cfg.local_search_max_pair_evaluations,
                 collect_diagnostics=cfg.collect_diagnostics,
                 max_diagnostic_nodes=cfg.max_diagnostic_nodes,
                 diagnostic_sample_rate=cfg.diagnostic_sample_rate,
@@ -2201,6 +2555,27 @@ def solve_global_theta_bnb(
                 diagnostics=bnb.diagnostics if cfg.collect_diagnostics or cfg.profile_timing else {},
             )
         )
+
+    missing_ub_records = [float(theta) for theta in candidates if float(theta) not in lp_bound_by_theta]
+    invalid_final_ub_records = [
+        float(theta)
+        for theta in candidates
+        if float(theta) in lp_bound_by_theta
+        and (
+            math.isnan(float(lp_bound_by_theta[float(theta)].lp_upper_bound))
+            or (
+                math.isinf(float(lp_bound_by_theta[float(theta)].lp_upper_bound))
+                and float(lp_bound_by_theta[float(theta)].lp_upper_bound) > 0.0
+            )
+        )
+    ]
+    diagnostics["theta_upper_bound_missing_count"] = int(len(missing_ub_records))
+    diagnostics["theta_upper_bound_invalid_count"] = int(len(invalid_final_ub_records))
+    if missing_ub_records or invalid_final_ub_records:
+        theta_upper_bounds.append(float("inf"))
+        if interruption_status is None:
+            interruption_status = "error"
+            message = "finite global gap unavailable because some theta upper-bound records are missing or invalid"
 
     upper_bound = max(theta_upper_bounds + ([incumbent_value] if math.isfinite(incumbent_value) else []), default=float("-inf"))
     lower_bound = incumbent_value if incumbent_selection is not None else float("-inf")
@@ -2273,6 +2648,7 @@ def solve_global_theta_bnb(
                 "total_strong_branching_time": sum(float(r.diagnostics.get("strong_branching_time", 0.0)) for r in records),
                 "total_strong_branching_candidates_evaluated": sum(int(r.diagnostics.get("strong_branching_candidates_evaluated", 0)) for r in records),
                 "total_local_incumbent_swaps": sum(int(r.diagnostics.get("local_incumbent_swaps", 0)) for r in records),
+                "total_local_incumbent_pair_evaluations": sum(int(r.diagnostics.get("local_incumbent_pair_evaluations", 0)) for r in records),
                 "unresolved_theta": [
                     {
                         "theta": float(r.theta),

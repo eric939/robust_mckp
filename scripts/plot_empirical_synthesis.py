@@ -3,7 +3,7 @@
 
 The figure is intentionally built from preserved CSV outputs rather than
 hard-coded numbers. It summarizes the evidence for the paper's main empirical
-message: HullRound is a strong robust-feasible primal method, exact theta-B&B
+message: HullRound is a strong robust-feasible primal method, exact $\theta$-B&B
 certifies non-tight regimes and exposes tight-capacity limits, and the
 semi-synthetic pricing application shows an interpretable revenue-risk frontier.
 """
@@ -26,7 +26,7 @@ FAMILY_LABELS = {
     "hull_compression": "Hull\ncompression",
     "adversarial": "Low\ncompression",
     "tight_capacity": "Tight\ncapacity",
-    "many_theta": "Many\ntheta",
+    "many_theta": "Many\n$\\theta$",
     "boundary": "Boundary",
 }
 

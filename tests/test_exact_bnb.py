@@ -509,3 +509,26 @@ def test_local_incumbent_improvement_is_feasible() -> None:
     assert res.status == "optimal"
     assert res.validation_flags["capacity_feasible"]
     assert res.selected_options is not None
+
+
+def test_two_item_local_incumbent_neighborhood_is_feasible_and_exact() -> None:
+    instance = _instance_from_fixed_theta_points(
+        cost_groups=[[0.0, 2.0, 6.0], [0.0, 3.0, 7.0], [0.0, 2.0, 5.0]],
+        value_groups=[[0.0, 5.0, 12.0], [0.0, 6.0, 15.0], [0.0, 4.0, 9.0]],
+        capacity=10.0,
+    )
+    brute = brute_force_fixed_theta(instance, 0.0)
+    res = solve_fixed_theta_bnb(
+        instance,
+        0.0,
+        FixedThetaBNBConfig(
+            use_local_incumbent_improvement=True,
+            local_search_neighborhood="single_two",
+            local_search_max_pair_evaluations=1000,
+            collect_diagnostics=True,
+        ),
+    )
+    assert res.status == "optimal"
+    assert res.objective_value == pytest.approx(brute.objective_value)
+    assert res.validation_flags["capacity_feasible"]
+    assert res.diagnostics["local_incumbent_pair_evaluations"] >= 0

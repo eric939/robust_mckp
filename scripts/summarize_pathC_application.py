@@ -136,6 +136,9 @@ def main() -> None:
     for r in exact:
         method_groups[r["method"]].append(r)
     rows = []
+    method_labels = {
+        "Global theta B&B": "Global $\\theta$-B\\&B",
+    }
     for method in sorted(method_groups):
         group = method_groups[method]
         certified = sum(1 for r in group if r.get("status") == "optimal")
@@ -143,7 +146,7 @@ def main() -> None:
         gaps = [float(r["gap_to_exact"]) for r in group if r.get("gap_to_exact") not in {"", "nan"} and math.isfinite(float(r["gap_to_exact"]))]
         rows.append(
             [
-                tex_escape(method),
+                method_labels.get(method, tex_escape(method)),
                 str(certified),
                 str(feasible),
                 fmt(med(gaps), 6),

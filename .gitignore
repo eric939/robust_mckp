@@ -10,6 +10,8 @@ paper_versions/
 results/
 review_bundles/
 submission_packages/
+submission_ready/
+output/
 data_cache/
 docs_archive/
 src/*.egg-info/

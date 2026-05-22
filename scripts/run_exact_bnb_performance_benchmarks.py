@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run performance benchmarks for exact theta-enumerated B&B configurations."""
+"""Run performance benchmarks for exact θ-enumeration B&B configurations."""
 from __future__ import annotations
 
 import argparse

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run targeted tight-capacity diagnostics for the exact global theta B&B."""
+"""Run targeted tight-capacity diagnostics for exact global θ enumeration."""
 from __future__ import annotations
 
 import argparse

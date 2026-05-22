@@ -23,8 +23,8 @@ outdir <- args[[2]]
 dir.create(outdir, recursive=TRUE, showWarnings=FALSE)
 d <- read.csv(input, stringsAsFactors=FALSE)
 families <- c("economic", "many_theta", "hull_compression", "adversarial")
-family_lab <- c(economic="Economic", many_theta="Many theta", hull_compression="Hull compression", adversarial="Low compression")
-method_lab <- c(hullround="HullRound", global_bnb_cached_cutoff_ordered="Exact theta-B&B", scip="SCIP", highs="HiGHS")
+family_lab <- c(economic="Economic", many_theta="Many θ", hull_compression="Hull compression", adversarial="Low compression")
+method_lab <- c(hullround="HullRound", global_bnb_cached_cutoff_ordered="Exact θ-B&B", scip="SCIP", highs="HiGHS")
 inst_key <- function(x) paste(x$family, x$n, x$m, x$gamma, x$gamma_mode, x$seed, sep="|")
 
 save_plot <- function(name, expr, width=7.2, height=4.4) {

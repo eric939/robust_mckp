@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run global theta-enumerated exact B&B benchmarks for Path A."""
+"""Run global θ-enumeration exact B&B benchmarks for Path A."""
 from __future__ import annotations
 
 import argparse
@@ -207,7 +207,7 @@ def write_outputs(rows: Sequence[Dict[str, object]], args: argparse.Namespace) -
     highs_checked = [r for r in rows if bool(r["highs_certified"]) and r["global_bnb_status"] == "optimal"]
 
     lines = [
-        "# Global theta B&B benchmark summary",
+        "# Global $\\theta$-B&B benchmark summary",
         "",
         f"Rows: {len(rows)}",
         f"Status counts: {statuses}",

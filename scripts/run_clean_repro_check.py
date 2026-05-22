@@ -36,6 +36,13 @@ KEY_SCRIPTS = [
     "scripts/run_fixed_theta_bnb_benchmarks.py",
     "scripts/run_global_theta_bnb_benchmarks.py",
     "scripts/run_exact_bnb_performance_benchmarks.py",
+    "scripts/run_parametric_sweep_ablation.py",
+    "scripts/summarize_parametric_sweep_ablation.py",
+    "scripts/run_parametric_sweep_benchmarks.py",
+    "scripts/summarize_parametric_sweep_benchmarks.py",
+    "scripts/run_segment_local_budget_experiments.py",
+    "scripts/summarize_segment_local_budget_experiments.py",
+    "scripts/build_parametric_sweep_claim_audit.py",
     "scripts/run_retail_publishable.py",
     "scripts/run_extended_publishable_experiments.py",
     "scripts/run_true_clean_room_check.py",
@@ -100,7 +107,82 @@ def main() -> int:
             ]
         )
 
-        log("5. Generate synthetic Path C calibration")
+        log("5. Run parametric sweep ablation smoke")
+        run(
+            [
+                sys.executable,
+                "scripts/run_parametric_sweep_ablation.py",
+                "--smoke",
+                "--output-dir",
+                "results/clean_repro_check/parametric_sweep_ablation_smoke",
+                "--validate",
+            ]
+        )
+        run(
+            [
+                sys.executable,
+                "scripts/summarize_parametric_sweep_ablation.py",
+                "--input-dir",
+                "results/clean_repro_check/parametric_sweep_ablation_smoke",
+                "--tables-dir",
+                "results/clean_repro_check/generated_tables/parametric_sweep",
+                "--label",
+                "smoke",
+            ]
+        )
+
+        log("6. Run parametric sweep solver smoke")
+        run(
+            [
+                sys.executable,
+                "scripts/run_parametric_sweep_benchmarks.py",
+                "--smoke",
+                "--output-dir",
+                "results/clean_repro_check/parametric_sweep_smoke",
+                "--time-limit",
+                "2",
+                "--node-limit",
+                "5000",
+                "--validate-sweep-sampled",
+            ]
+        )
+        run(
+            [
+                sys.executable,
+                "scripts/summarize_parametric_sweep_benchmarks.py",
+                "--input-dir",
+                "results/clean_repro_check/parametric_sweep_smoke",
+                "--tables-dir",
+                "results/clean_repro_check/generated_tables/parametric_sweep",
+                "--label",
+                "smoke",
+            ]
+        )
+
+        log("7. Run segment-local budget smoke")
+        run(
+            [
+                sys.executable,
+                "scripts/run_segment_local_budget_experiments.py",
+                "--smoke",
+                "--output-dir",
+                "results/clean_repro_check/segment_local_budget_smoke",
+            ]
+        )
+        run(
+            [
+                sys.executable,
+                "scripts/summarize_segment_local_budget_experiments.py",
+                "--input-dir",
+                "results/clean_repro_check/segment_local_budget_smoke",
+                "--tables-dir",
+                "results/clean_repro_check/generated_tables/parametric_sweep",
+                "--label",
+                "smoke",
+            ]
+        )
+
+        log("8. Generate synthetic Path C calibration")
         run(
             [
                 sys.executable,
@@ -112,7 +194,7 @@ def main() -> int:
             ]
         )
 
-        log("6. Run bounded Path C smoke")
+        log("9. Run bounded Path C smoke")
         run(
             [
                 sys.executable,

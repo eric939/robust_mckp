@@ -4,7 +4,7 @@ from __future__ import annotations
 import heapq
 import time
 from dataclasses import dataclass
-from typing import List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 
@@ -23,6 +23,7 @@ class CandidateResult:
     objective: float
     lp_value: float
     certificate_value: float
+    diagnostics: Optional[Dict[str, float]] = None
 
 
 @dataclass
@@ -129,6 +130,26 @@ def _compute_group_max(values: np.ndarray, indices: np.ndarray) -> Tuple[float, 
             best_val = v
             best_idx = j
     return best_val, best_idx
+
+
+def _round_down_value(lp_sol, hulls: List[Hull]) -> float:
+    """Objective value of the formal round-down solution for certificate diagnostics."""
+
+    value = 0.0
+    for pos, hull in zip(lp_sol.positions, hulls):
+        vertex_idx = pos.upper_vertex if pos.lambda_ >= 1.0 - EPS else pos.lower_vertex
+        value += float(hull.values[int(vertex_idx)])
+    return float(value)
+
+
+def _delta_v_max(hulls: List[Hull]) -> float:
+    """Largest adjacent upper-hull value jump used in the one-item certificate."""
+
+    max_jump = 0.0
+    for hull in hulls:
+        if hull.values.size >= 2:
+            max_jump = max(max_jump, float(np.max(np.diff(hull.values))))
+    return float(max(0.0, max_jump))
 
 
 def _initialize_sweep_states(
@@ -336,6 +357,8 @@ def _finalize_solution(
         gap = 0.0 if abs(best.objective) <= EPS else float("inf")
     else:
         gap = (best.lp_value - best.objective) / best.lp_value
+    if best.diagnostics:
+        instrumentation.update(best.diagnostics)
 
     return Solution(
         selections=best.selections,
@@ -469,6 +492,20 @@ def solve(instance: PricingInstance, *, upgrade_completion: bool = True) -> Solu
 
         objective = float(sum(v_list[i][sel] for i, sel in enumerate(selections)))
         lp_value = float(lp_sol.lp_value)
+        round_down_obj = _round_down_value(lp_sol, hulls)
+        delta_bound = _delta_v_max(hulls)
+        lp_minus_round_down = float(lp_value - round_down_obj)
+        lp_scale = max(abs(lp_value), 1.0)
+        candidate_diagnostics = {
+            "selected_theta_lp_upper_bound": float(lp_value),
+            "selected_theta_round_down_objective": float(round_down_obj),
+            "selected_theta_delta_v_max": float(delta_bound),
+            "selected_theta_lp_minus_round_down": float(lp_minus_round_down),
+            "selected_theta_delta_v_max_over_lp_upper_bound": float(delta_bound / lp_scale),
+            "selected_theta_lp_minus_round_down_over_lp_upper_bound": float(lp_minus_round_down / lp_scale),
+            "selected_theta_final_objective_gap_to_lp_upper_bound": float(lp_value - objective),
+            "selected_theta_final_objective_gap_to_lp_upper_bound_ratio": float((lp_value - objective) / lp_scale),
+        }
 
         if best is None or objective > best.objective + EPS:
             best = CandidateResult(
@@ -477,6 +514,7 @@ def solve(instance: PricingInstance, *, upgrade_completion: bool = True) -> Solu
                 objective=objective,
                 lp_value=lp_value,
                 certificate_value=float(cert),
+                diagnostics=candidate_diagnostics,
             )
 
     instrumentation = {
@@ -551,4 +589,3 @@ def _solve_naive_reference(instance: PricingInstance, *, upgrade_completion: boo
         start=start,
         instrumentation={"mode": "naive_reference"},
     )
-

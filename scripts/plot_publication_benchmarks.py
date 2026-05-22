@@ -19,10 +19,10 @@ import numpy as np
 
 METHOD_LABELS = {
     "hullround": "HullRound",
-    "global_bnb_baseline": "Global theta-B&B",
-    "global_bnb_cached": "Global theta-B&B + cache",
-    "global_bnb_cached_cutoff": "Global theta-B&B + cache/cutoff",
-    "global_bnb_cached_cutoff_ordered": "Global theta-B&B + cache/cutoff/order",
+    "global_bnb_baseline": r"Global $\theta$-B&B",
+    "global_bnb_cached": r"Global $\theta$-B&B + cache",
+    "global_bnb_cached_cutoff": r"Global $\theta$-B&B + cache/cutoff",
+    "global_bnb_cached_cutoff_ordered": r"Global $\theta$-B&B + cache/cutoff/order",
     "scip": "SCIP",
     "highs": "HiGHS",
 }

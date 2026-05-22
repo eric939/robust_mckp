@@ -227,6 +227,7 @@ def hullround_metrics(instance: PricingInstance, *, validate_lp: bool = False) -
         "l_rd": l_rd,
         "delta_v_max_theta": bound,
         "l_rd_over_delta": l_rd / bound if bound > EPS else 0.0,
+        "delta_v_max_over_lp_ub": bound / max(abs(float(lp.lp_value)), 1.0),
         "gap_lp": l_rd / float(lp.lp_value) if abs(lp.lp_value) > EPS else float("nan"),
         "n_gap_lp": instance.n_items * l_rd / float(lp.lp_value) if abs(lp.lp_value) > EPS else float("nan"),
         "certificate_value": float(cert),

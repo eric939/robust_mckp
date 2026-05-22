@@ -116,7 +116,7 @@ def main() -> None:
         ],
         [
             "Exact certification",
-            f"Optimized exact theta-B&B certified {opt_cert}/{len(optimized)} publication rows.",
+            f"Optimized exact $\\theta$-B&B certified {opt_cert}/{len(optimized)} publication rows.",
             f"All {opt_limited} limited rows are tight-capacity; limited runs report valid gaps.",
         ],
         [
