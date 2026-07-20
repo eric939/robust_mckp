@@ -6,7 +6,8 @@ V4_RUN_PAPER ?= tmp/v4_reproduction_paper
 V4_CALIBRATION ?= $(V4_RELEASE_RESULTS)/uci_calibration
 
 .PHONY: install-dev test check clean-check v3-smoke v3-evidence \
-	v4-verify v4-evidence v4-exact-audit v4-reproduce v4-paper v4-package clean
+	v4-verify v4-evidence v4-exact-audit v4-reproduce v4-paper v4-package \
+	v4-anonymous-package clean
 
 install-dev:
 	$(PYTHON) -m pip install -U pip
@@ -77,6 +78,12 @@ v4-package: v4-paper
 	cp paper_versions/v4/main_v4_ec.pdf output/pdf/robust_mckp_v4_electronic_companion.pdf
 	cp paper_versions/v4/main_v4_ec_blind.pdf output/pdf/robust_mckp_v4_electronic_companion_blind.pdf
 	cp paper_versions/v4/executive_summary_opre.pdf output/pdf/robust_mckp_v4_executive_summary.pdf
+
+v4-anonymous-package: v4-verify v4-paper
+	$(PYTHON) scripts/build_v4_anonymous_supplement.py \
+		--results $(V4_RELEASE_RESULTS) \
+		--paper paper_versions/v4 \
+		--output output/anonymous/robust_mckp_v4_anonymous_supplement.zip
 
 clean:
 	rm -rf results paper .pytest_cache

@@ -65,6 +65,7 @@ paper_versions/*
 !paper_versions/v4/
 paper_versions/v4/*
 !paper_versions/v4/README.md
+!paper_versions/v4/cover_letter_opre.md
 !paper_versions/v4/*.tex
 !paper_versions/v4/auto/
 paper_versions/v4/auto/*

@@ -20,6 +20,12 @@ Build and package all six PDFs with:
 make v4-package
 ```
 
+Build the identity-scanned anonymous supplement with:
+
+```bash
+make v4-anonymous-package PYTHON=.venv/bin/python
+```
+
 The same target also builds `main_v4.pdf`, the convenient combined
 main-plus-appendix version; it is not a separate journal upload.
 
@@ -34,10 +40,11 @@ notation, and all mathematical proofs appear in the main paper. The electronic
 companion is limited to comparator implementation, exact-integration audit,
 statistical protocol, generators, and reproducibility detail.
 
-For anonymous review, upload only the blind main manuscript and blind
-electronic companion. Inspect the journal-generated merged proof before final
-submission. Do not upload the public PDFs or `CITATION.cff` in an anonymous
-submission.
+For anonymous review, upload only the blind main manuscript, blind electronic
+companion, and the generated anonymous supplement if the journal accepts
+review artifacts. Inspect the journal-generated merged proof before final
+submission. Do not upload the public PDFs, public TeX source, `pyproject.toml`,
+or `CITATION.cff` in an anonymous submission.
 
 ## Public GitHub artifact
 
@@ -67,6 +74,7 @@ Raw UCI Online Retail transactions are not redistributed.
 ```bash
 make v4-verify PYTHON=.venv/bin/python
 make v4-package
+make v4-anonymous-package PYTHON=.venv/bin/python
 ```
 
 Then check the compiled files:
@@ -84,9 +92,14 @@ All three searches should return no actionable hit. Bibliographic references
 to a prior working paper, if retained, must follow the target journal's
 double-blind self-citation policy.
 
+Before upload, create an immutable `v4` release tag from the exact submitted
+commit and record that tag or archive DOI in the submission form. Branch names
+alone are mutable and are not an archival identifier.
+
 ## Version-disclosure rule
 
-The cover letter should state that v4 is a focused successor to v3: it removes
+The supplied `paper_versions/v4/cover_letter_opre.md` states that v4 is a
+focused successor to v3: it removes
 the predecessor's broad pricing and rounding claims and centers on the
 simultaneous group-envelope bound. It adds a formal dominance theorem and a
 scoped exact-integration audit without reviving the predecessor's universal

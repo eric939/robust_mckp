@@ -46,6 +46,40 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def repository_relative(path: Path) -> str:
+    """Return a portable repository-relative label without leaking local paths."""
+    try:
+        return path.resolve().relative_to(ROOT).as_posix()
+    except ValueError:
+        return path.name
+
+
+def source_snapshot() -> list[Path]:
+    """Conservatively hash executable and validation sources behind the release."""
+    paths: set[Path] = {ROOT / "Makefile", ROOT / "pyproject.toml"}
+    paths.update((ROOT / "src" / "robust_mckp").glob("*.py"))
+    paths.update((ROOT / "tests").glob("*.py"))
+    for relative in (
+        "research/bound_dominance.py",
+        "research/compressed_interval_oracle.py",
+        "research/exact_integration_campaign.py",
+        "research/generate_v4_publication_artifacts.py",
+        "research/integrated_exact_solver.py",
+        "research/novelty_go_no_go.py",
+        "research/structural_feasibility_study.py",
+        "research/v4_publication_campaign.py",
+        "scripts/benchmark_solvers.py",
+        "scripts/build_v4_anonymous_supplement.py",
+        "scripts/run_pathC_data_calibration.py",
+        "scripts/run_pathC_semisynthetic_application.py",
+        "scripts/run_v3_experiments.py",
+        "scripts/run_v4_publication_campaign.py",
+        "scripts/verify_v4_release.py",
+    ):
+        paths.add(ROOT / relative)
+    return sorted(path for path in paths if path.is_file())
+
+
 def grouped(rows: list[dict[str, str]], field: str) -> dict[str, list[dict[str, str]]]:
     groups: dict[str, list[dict[str, str]]] = {}
     for row in rows:
@@ -150,7 +184,7 @@ def primary_table(rows: list[dict[str, str]]) -> str:
         [
             r"\begin{tabular}{rrrrrrrr}",
             r"\toprule",
-            r"Groups & Cases & Compressed (s) & Clique (s) & Geo. speedup & Wins & $L(\theta)$ eval. C/Q & Q interval LPs \\",
+            r"Groups & Cases & Compressed (s) & Clique (s) & Geometric speedup & Wins & Fixed-threshold LPs C/Q & Clique interval LPs \\",
             r"\midrule",
             *body,
             r"\bottomrule",
@@ -180,7 +214,7 @@ def robustness_table(results: Path, rows: list[dict[str, str]]) -> str:
         [
             r"\begin{tabular}{lrrr}",
             r"\toprule",
-            r"Configuration & Geo. speedup [95\% CI] & Wins & $\theta$ eval. \\",
+            r"Configuration & Geometric speedup [95\% interval] & Wins & Thresholds evaluated \\",
             r"\midrule",
             *body,
             r"\bottomrule",
@@ -204,7 +238,7 @@ def kernel_table(rows: list[dict[str, str]]) -> str:
         [
             r"\begin{tabular}{rrrrrr}",
             r"\toprule",
-            r"Groups & Cases & Query speedup & Total speedup & Storage ratio$^a$ & Max error \\",
+            r"Groups & Cases & Query speedup & Total speedup & Storage ratio & Maximum error \\",
             r"\midrule",
             *body,
             r"\bottomrule",
@@ -227,7 +261,7 @@ def stress_table(rows: list[dict[str, str]]) -> str:
         [
             r"\begin{tabular}{rrrrrr}",
             r"\toprule",
-            r"Groups & Cases & Compressed (s) & Clique (s) & Geo. speedup & Wins \\",
+            r"Groups & Cases & Compressed (s) & Clique (s) & Geometric speedup & Wins \\",
             r"\midrule",
             *body,
             r"\bottomrule",
@@ -266,6 +300,12 @@ def speedup_figure(
         "correlated_risk": "#D55E00",
         "near_tie": "#009E73",
         "many_breakpoints": "#CC79A7",
+    }
+    markers = {
+        "dense_frontier": "o",
+        "correlated_risk": "s",
+        "near_tie": "^",
+        "many_breakpoints": "D",
     }
     fig, (kernel_ax, end_ax) = plt.subplots(1, 2, figsize=(7.3, 3.25), constrained_layout=True)
 
@@ -321,7 +361,17 @@ def speedup_figure(
         sample = [row for row in rows if row["family"] == family]
         x = [int(row["n"]) * math.exp(offsets[family]) for row in sample]
         y = [float(row["adaptive_speedup"]) for row in sample]
-        end_ax.scatter(x, y, s=18, alpha=0.68, color=colors[family], label=labels[family], edgecolors="none")
+        end_ax.scatter(
+            x,
+            y,
+            s=20,
+            alpha=0.72,
+            color=colors[family],
+            marker=markers[family],
+            label=labels[family],
+            edgecolors="0.2",
+            linewidths=0.3,
+        )
     sizes = sorted({int(row["n"]) for row in rows})
     means = [geometric_mean(float(row["adaptive_speedup"]) for row in rows if int(row["n"]) == n) for n in sizes]
     end_ax.plot(sizes, means, color="black", linewidth=1.4, marker="D", markersize=4, label="Geometric mean")
@@ -361,21 +411,10 @@ def main() -> None:
 
     evidence_files = sorted(results.rglob("*.csv")) + sorted(results.rglob("*.json"))
     manifest = {
-        "results_directory": str(results),
+        "results_directory": repository_relative(results),
         "files": {str(path.relative_to(results)): sha256(path) for path in evidence_files},
         "source_files": {
-            str(path.relative_to(ROOT)): sha256(path)
-            for path in (
-                ROOT / "research" / "bound_dominance.py",
-                ROOT / "research" / "compressed_interval_oracle.py",
-                ROOT / "research" / "exact_integration_campaign.py",
-                ROOT / "research" / "structural_feasibility_study.py",
-                ROOT / "research" / "integrated_exact_solver.py",
-                ROOT / "research" / "v4_publication_campaign.py",
-                ROOT / "research" / "generate_v4_publication_artifacts.py",
-                ROOT / "scripts" / "run_pathC_data_calibration.py",
-                ROOT / "scripts" / "run_pathC_semisynthetic_application.py",
-            )
+            path.relative_to(ROOT).as_posix(): sha256(path) for path in source_snapshot()
         },
         "generated": [
             "auto/v4_publication_numbers.tex",

@@ -91,13 +91,13 @@
 \else
 
 \begin{abstract}
-Budgeted uncertainty reduces a binary optimization problem to nominal subproblems indexed by deviation thresholds, but processing every threshold relaxation can dominate computation.  For a robust multiple-choice knapsack problem, exactly-one groups permit simultaneous evaluation.  Dualizing a fixed-threshold capacity constraint cancels threshold-dependent baselines, leaving the maximum of a constant and a common-slope line within each local deviation interval.  After sorting, prefix and suffix maxima with range accumulation evaluate one multiplier at every threshold in time linear in the threshold count and nearly linear in the option count.  The resulting minimax interval bound is valid by weak duality, exact on feasible singleton intervals, and provably no weaker than the bounded-threshold group-clique relaxation.  In a protocol-fixed 60-instance comparison, both certificate methods reach the prescribed tolerance; the compressed method wins every timing and achieves a \PubPrimaryGeoSpeedup-fold geometric-mean speedup, with a 95 percent interval from \PubPrimaryCILow{} to \PubPrimaryCIHigh.  Separate validation, robustness, stress, and application-derived panels support correctness and increasing separation through 5,760 groups.
+Budgeted uncertainty reduces a binary optimization problem to nominal subproblems indexed by deviation thresholds, but processing every threshold relaxation can dominate computation.  For a robust multiple-choice knapsack problem, exactly-one groups permit simultaneous evaluation.  Dualizing a fixed-threshold capacity constraint cancels threshold-dependent baselines, leaving the maximum of a constant and a common-slope line within each local deviation interval.  After sorting, prefix and suffix maxima with range accumulation evaluate one multiplier at every threshold in time linear in the threshold count and nearly linear in the option count.  The resulting minimax interval bound is valid by weak duality, exact on feasible singleton intervals, and provably no weaker than the bounded-threshold group-clique relaxation.  In a protocol-fixed 60-instance comparison, both certificate methods reach the prescribed tolerance; the compressed method wins every timing and achieves a \PubPrimaryGeoSpeedup-fold geometric-mean speedup, with a 95 percent design-stratified bootstrap interval from \PubPrimaryCILow{} to \PubPrimaryCIHigh.  Separate validation, robustness, stress, and application-derived panels support correctness and increasing separation through 5,760 groups.
 \end{abstract}
 
-\keywords{robust optimization; multiple-choice knapsack; Lagrangian relaxation; parametric optimization; LP-bound certification}
+\keywords{robust optimization; multiple-choice knapsack; parametric Lagrangian bounds}
 
 \noindent\textbf{Area of review:} Optimization.\\
-\textbf{Subject classifications:} Programming: integer; robust optimization; knapsack problems.
+\textbf{Subject classifications:} Programming, integer: robust multiple-choice knapsack; Programming, linear: Lagrangian upper bounds; Analysis of algorithms: parametric evaluation.
 
 \section{Introduction}\label{sec:introduction}
 
@@ -107,7 +107,7 @@ Many operational decisions have an exactly-one menu structure: one price per pro
 
 This paper identifies a cancellation created by the exactly-one equations.  After dualizing a fixed-threshold capacity constraint, the threshold-dependent group baselines disappear.  Within each local deviation interval, a group contributes the larger of a constant and a line whose slope is common to all active options.  Prefix and suffix maxima together with range accumulation therefore evaluate one multiplier simultaneously over the full global threshold grid.  The resulting algorithm is linear in the threshold count and nearly linear in the option count after sorting.
 
-The evaluator yields a minimax interval bound for adaptive threshold decomposition.  We prove validity, singleton exactness, and a new dominance result: the exact minimax envelope bound is no larger than the bounded-threshold group-clique relaxation.  A protocol-fixed computational study then separates algebraic correctness, kernel scaling, common-search-tree behavior, end-to-end certificate time, robustness, and application-derived coefficient realism.  The contribution is the simultaneous parametric bound, not a new uncertainty set, a faster algorithm for one knapsack relaxation, or universal superiority of an integer solver.
+The paper makes four contributions.  First, it derives the cancellation and a two-envelope algorithm that evaluates a multiplier over all thresholds at once.  Second, it turns this evaluator into a valid minimax certificate and proves that the exact certificate is no weaker than the closest bounded-threshold group-clique relaxation.  Third, it embeds the certificate in an adaptive decomposition with explicit global-bound invariants and a separately scoped exact-integer extension.  Fourth, a protocol-fixed study distinguishes algebraic correctness, kernel scaling, common-search-tree behavior, end-to-end certificate time, robustness, and application-derived coefficient realism.  The contribution is the simultaneous parametric bound, not a new uncertainty set, a faster algorithm for one knapsack relaxation, or universal superiority of an integer solver.
 
 \section{Robust MCKP and prior-art boundary}\label{sec:problem}
 
@@ -180,6 +180,8 @@ Ellipsoidal robust MMKP \citep{Caserta2019} & Treats multiple resources and cova
 \end{tabular}
 \end{table}
 
+The argument proceeds in three logical steps.  The threshold representation first converts the robust model into a finite family of fixed-threshold linear relaxations.  Lagrangian duality then replaces that family by a minimax interval certificate and permits comparison with the group-clique relaxation.  Finally, the exactly-one equations expose the cancellation that makes simultaneous evaluation computationally useful.  Keeping these steps separate is important: certificate validity follows from duality, whereas speed follows from the group-envelope data structure.
+
 \section{A Lagrangian bound over threshold intervals}\label{sec:interval-bound}
 
 Fix $\theta\in\B$ and define the group baseline
@@ -226,6 +228,7 @@ For every interval $I$,
 For a feasible singleton $I=\{k\}$, $U(\{k\})=L(b_k)$.
 \end{proposition}
 \begin{proof}
+If $I\cap\mathcal F=\varnothing$, then every displayed quantity equals $-\infty$ by convention, so the claim is immediate.  Assume henceforth that $I\cap\mathcal F\ne\varnothing$.
 For every $k\in\mathcal F$ and $\lambda\ge0$, weak duality gives $L(b_k)\le D(\lambda,b_k)$.  Maximizing over $k\in I\cap\mathcal F$ and then taking the infimum over $\lambda$ gives the first inequality.  Restricting an infimum to $\Lambda_I$ can only increase its value, giving the second.  On a feasible singleton, \eqref{eq:dense-D} is the Lagrangian dual obtained after optimizing over the product of group simplices.  The feasible bounded LP \eqref{eq:fixed-lp} satisfies strong duality, hence $L(b_k)=\inf_{\lambda\ge0}D(\lambda,b_k)$.
 \end{proof}
 
@@ -241,7 +244,7 @@ $\underline\theta=b_\ell$, $\overline\theta=b_u$, and define $Q(I)$ as the optim
 &\sum_jx_{ij}=1 &&(i=1,\ldots,n),\nonumber\\
 &x,p\ge0,\qquad 0\le z\le\overline\theta-\underline\theta.\nonumber
 \end{align}
-This is the exactly-one specialization of the bounded-threshold clique construction of \citet{BusingGersingKoster2023}.
+This is the exactly-one specialization of the bounded-threshold clique construction of \citet{BusingGersingKoster2023}.  We use the extended-value convention $Q(I)=-\infty$ if this maximization problem is infeasible.
 
 \begin{theorem}[Dominance by the exact minimax envelope]\label{thm:dominance}
 For every threshold interval $I$, the exact minimax group-envelope bound is no larger than the bounded-threshold group-clique bound:
@@ -251,6 +254,7 @@ For every threshold interval $I$, the exact minimax group-envelope bound is no l
 Thus $U(I)$ is at least as strong as the comparator relaxation for the objective under study, while avoiding an interval LP solve.
 \end{theorem}
 \begin{proof}
+If $I\cap\mathcal F=\varnothing$, then $U(I)=-\infty$ and both inequalities are immediate.  Hence assume $I\cap\mathcal F\ne\varnothing$.
 The epigraph formulation of \eqref{eq:U-I} is a linear program.  Its dual has variables $\mu_k\ge0$ and $y_{kij}\ge0$ and can be written
 \begin{align*}
 \max\quad &\sum_{k\in I\cap\mathcal F}\sum_{i,j}v_{ij}y_{kij}\\
@@ -260,7 +264,7 @@ The epigraph formulation of \eqref{eq:U-I} is a linear program.  Its dual has va
 &\sum_{k,i,j}c_{ij}(b_k)y_{kij}
  \le\sum_k\mu_k C(b_k).
 \end{align*}
-Strong duality applies because the primal epigraph is feasible and bounded.  Take any feasible dual solution and set
+Strong duality applies because the primal epigraph is feasible and has a finite optimum.  The dual can be read as a convex mixture of threshold-indexed group-simplex points coupled by one aggregate capacity inequality.  Take any feasible dual solution and set
 \begin{align*}
 x_{ij}&:=\sum_k y_{kij},
 &z&:=\sum_k\mu_k(b_k-\underline\theta),\\
@@ -413,19 +417,19 @@ Every fixed-threshold integer optimum is bounded by its fixed-threshold LP value
 
 The revised protocol was serialized before the sparse-comparator confirmatory rerun; its SHA-256 digest is
 \nolinkurl{20fd417c6765573b98c88b648abb8af74775e5d0f7d0796aa8a0097853f211ce}.
-All runs used one thread on an Apple M4 under macOS, Python 3.14.2, NumPy 2.4.4, and SciPy 1.17.1 with HiGHS.  Source data, raw timing repetitions, environment records, summaries, and generation scripts accompany the paper.
+This is a prospectively locked internal protocol, not an externally registered study.  All runs used one thread on an Apple M4 under macOS, Python 3.14.2, NumPy 2.4.4, and SciPy 1.17.1 with HiGHS.  Source data, raw timing repetitions, environment records, summaries, and generation scripts accompany the paper.
 
-Four structured families isolate distinct difficulties: \emph{dense frontier} gives many competitive value--resource tradeoffs; \emph{correlated risk} couples value gains and deviations; \emph{near tie} produces unstable rankings; and \emph{many breakpoints} gives essentially unique deviations, so $B$ grows with $K$.  The primary panel uses six options per group, $\Gamma=\lfloor\sqrt n\rfloor$, $n\in\{360,720,1440\}$, five seeds per family--size cell, and five timing repetitions per method.  Method order alternates within an instance; the instance median is the sole statistical observation.  We report geometric-mean paired speedup, a 10,000-draw bootstrap CI that resamples seeds within each family--size cell, and an exact one-sided sign test.
+Four structured families isolate distinct difficulties: \emph{dense frontier} gives many competitive value--resource tradeoffs; \emph{correlated risk} couples value gains and deviations; \emph{near tie} produces unstable rankings; and \emph{many breakpoints} gives essentially unique deviations, so $B$ grows with $K$.  The primary panel uses six options per group, $\Gamma=\lfloor\sqrt n\rfloor$, $n\in\{360,720,1440\}$, five seeds per family--size cell, and five timing repetitions per method.  Method order alternates within an instance; the instance median is the sole statistical observation.  We report geometric-mean paired speedup, a 10,000-draw design-stratified bootstrap interval that resamples seeds within each family--size cell, and an exact one-sided sign test.  These summaries quantify variation across the generated instances in the fixed factorial design; they do not define a superpopulation of all robust MCKPs.
 
 The end-to-end comparator is the bounded-threshold LP of \citet{BusingGersingKoster2023}, specialized with one clique/GUB inequality per exactly-one group as in \eqref{eq:clique-main} and assembled in sparse CSR form.  Both methods use the same best-first splitting policy, fixed-threshold LP routine, endpoint--midpoint candidate rule, scaled tolerance $\varepsilon=10^{-6}$, and time limit including preprocessing.  They differ only in the interval upper bound: the comparator solves a bounded-threshold clique LP, whereas the compressed method evaluates the group-envelope Lagrangian bound.
 
 The shared fixed-threshold routine constructs each group's upper value--cost hull and greedily merges its slopes, avoiding branch-and-bound data that neither certificate needs.  Held-out validation compares this LP-only path with an independent reference routine at every threshold; both certificates therefore use the same fixed-MCKP solver.
 
-Predeclared gates required maximum algebraic error at most $2\times10^{-6}$; kernel speedup at least 3$\times$ for $n\ge360$; 100\% primary tolerance completion; geometric-mean primary speedup at least 2$\times$ with CI lower endpoint above 1.5$\times$; at least 80\% timing wins; root dominance in at least 95\% of cases; a median win in all four families; and a median win in every robustness configuration.
+Protocol-fixed gates required maximum algebraic error at most $2\times10^{-6}$; kernel speedup at least 3$\times$ for $n\ge360$; 100\% primary tolerance completion; geometric-mean primary speedup at least 2$\times$ with interval lower endpoint above 1.5$\times$; at least 80\% timing wins; root dominance in at least 95\% of cases; a median win in all four families; and a median win in every robustness configuration.
 
 \subsection{Correctness validation and oracle ablations}
 
-Forty held-out irregular instances use unequal menu sizes, repeated and near-repeated deviations, signed objectives, and $\Gamma$ values from 0 to $n$.  We compare the compressed trace with (i) the dense baseline-cost trace, (ii) direct evaluation of \eqref{eq:cancelled-D}, (iii) independently optimized interval bounds, (iv) the independent fixed-MCKP LP routine at every threshold, and (v) a complete fixed-threshold LP scan.  The maximum absolute discrepancy is \PubValidationMaxError, and the minimum root-bound slack over the full scan is \PubValidationMinSlack.  Both predeclared validation gates pass.
+Forty held-out irregular instances use unequal menu sizes, repeated and near-repeated deviations, signed objectives, and $\Gamma$ values from 0 to $n$.  We compare the compressed trace with (i) the dense baseline-cost trace, (ii) direct evaluation of \eqref{eq:cancelled-D}, (iii) independently optimized interval bounds, (iv) the independent fixed-MCKP LP routine at every threshold, and (v) a complete fixed-threshold LP scan.  The maximum absolute discrepancy is \PubValidationMaxError, and the minimum root-bound slack over the full scan is \PubValidationMinSlack.  Both protocol-fixed validation gates pass.
 
 The kernel ablation separates algebraic compression from adaptive search.  It contains \PubKernelCases{} instances, nine normalized multiplier queries, five repetitions, and balanced order.  \Cref{tab:kernel} reports geometric-mean query and total construction-plus-query speedups.  The maximum identity error is \PubKernelMaxError.  For $n\ge360$, total speedup is \PubKernelLargeSpeedup$\times$ in geometric mean.  In the many-breakpoints family, where $B$ grows linearly with $K$, the descriptive log--log slopes are \PubKernelCompressedSlope{} for the compressed evaluator and \PubKernelDenseSlope{} for dense materialization; the left panel of \Cref{fig:scaling} shows the separation.  Storage denotes persistent numerical-array bytes rather than peak process memory and grows sharply only in that family.
 
@@ -441,11 +445,11 @@ To isolate the interval oracles from adaptive-tree effects, a common-trace ablat
 
 \subsection{Primary result}
 
-Both methods reach tolerance on all \PubPrimaryCases{} primary instances.  The compressed method wins all \PubPrimaryWins{} paired timings ($p=\PubPrimarySignP$), with geometric-mean speedup \PubPrimaryGeoSpeedup$\times$ and 95\% CI [\PubPrimaryCILow, \PubPrimaryCIHigh].  It evaluates a median \PubPrimaryMedianThetaPct{} of thresholds as fixed LPs.  Final lower bounds differ by at most \PubPrimaryMaxDifference{} relatively, and its root bound never exceeds the clique root bound within numerical tolerance.  All \PubRepeatWins{}/\PubRepeatBlocks{} repeat blocks are wins (minimum \PubRepeatMinSpeedup$\times$); median within-instance coefficients of variation are \PubCompressedMedianCV{} and \PubCliqueMedianCV{}.  Across an instance's interval solves, the clique comparator uses a median \PubCliqueMedianNnz{} sparse-matrix nonzeros and \PubCliqueMedianCSRMiB{} MiB of cumulative CSR arrays.  The right panel of \Cref{fig:scaling} displays instance- and size-level scaling.
+Both methods reach tolerance on all \PubPrimaryCases{} primary instances.  The compressed method wins all \PubPrimaryWins{} paired timings ($p=\PubPrimarySignP$), with geometric-mean speedup \PubPrimaryGeoSpeedup$\times$ and 95\% design-stratified bootstrap interval [\PubPrimaryCILow, \PubPrimaryCIHigh].  It evaluates a median \PubPrimaryMedianThetaPct{} of thresholds as fixed LPs.  Final lower bounds differ by at most \PubPrimaryMaxDifference{} relatively, and its root bound never exceeds the clique root bound within numerical tolerance.  All \PubRepeatWins{}/\PubRepeatBlocks{} repeat blocks are wins (minimum \PubRepeatMinSpeedup$\times$); median within-instance coefficients of variation are \PubCompressedMedianCV{} and \PubCliqueMedianCV{}.  Across an instance's interval solves, the clique comparator uses a median \PubCliqueMedianNnz{} sparse-matrix nonzeros and \PubCliqueMedianCSRMiB{} MiB of cumulative CSR arrays.  The right panel of \Cref{fig:scaling} displays instance- and size-level scaling.
 
 \begin{table}[t]
 \centering
-\caption{Primary end-to-end certificate comparison.  Times are medians over five balanced repetitions within an instance; aggregate speedup treats each instance once.  C and Q denote the compressed and clique certificates.}
+\caption{Primary end-to-end certificate comparison.  Each reported time and evaluation count is the median across instances of that size after taking the within-instance median over five balanced timing repetitions.  Aggregate speedup treats each instance once.  C and Q denote the compressed and clique certificates.}
 \label{tab:primary}
 \small
 \resizebox{\textwidth}{!}{\input{tables/v4_primary_publication.tex}}
@@ -458,7 +462,7 @@ Both methods reach tolerance on all \PubPrimaryCases{} primary instances.  The c
 \label{fig:scaling}
 \end{figure}
 
-Every family median exceeds one, from \PubFamilyBreakpoints$\times$ for many breakpoints to \PubFamilyCorrelated$\times$ for correlated risk, so the predeclared breadth gate passes.
+Every family median exceeds one, from \PubFamilyBreakpoints$\times$ for many breakpoints to \PubFamilyCorrelated$\times$ for correlated risk, so the protocol-fixed breadth gate passes.
 
 \subsection{Robustness and stress evidence}
 
@@ -476,7 +480,7 @@ The stress panel is descriptive rather than inferential: it uses four families, 
 
 \begin{table}[t]
 \centering
-\caption{Separate stress panel.  Each row contains one new instance per family; conclusions are scaling evidence, not a confidence claim.}
+\caption{Separate stress panel.  Each row aggregates one new instance per family; reported times are medians across those four instances after taking the within-instance median over two balanced repetitions.  Conclusions are scaling evidence, not a confidence claim.}
 \label{tab:stress}
 \small
 \input{tables/v4_stress_publication.tex}
@@ -532,7 +536,7 @@ The statistical unit is an instance.  Timing repetitions estimate the runtime of
 \[
 \exp\left(\frac1R\sum_{r=1}^R\log s_r\right).
 \]
-The percentile interval resamples seeds with replacement separately inside each family--size cell for 10,000 draws, preserving the factorial design.  The exact one-sided sign test uses $\Pr\{\operatorname{Binomial}(R,1/2)\ge W\}$, where $W$ is the number of instance-level wins.  No timing repetition enters either inferential calculation.
+The percentile interval resamples seeds with replacement separately inside each family--size cell for 10,000 draws, preserving the factorial design.  It is a design-stratified measure of variability across generated seeds, not a population-sampling interval for all robust MCKPs.  The exact one-sided sign test uses $\Pr\{\operatorname{Binomial}(R,1/2)\ge W\}$, where $W$ is the number of instance-level wins, under the paired symmetric-null model.  No timing repetition enters either inferential calculation.
 
 The primary design has 60 instances: three sizes, four families, and five seeds.  Robustness has 36 new instances: three configurations, four families, and three seeds at $n=720$.  Stress has eight new instances: two sizes, four families, and one seed.  The kernel has 48 instances: four sizes, four families, and three seeds.  Validation has 40 independently generated irregular cases.  A post-confirmatory external panel has nine UCI-calibrated semi-synthetic portfolios: three sizes and three new seeds.  Thread environment variables were fixed to one for every phase.
 
