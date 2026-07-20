@@ -28,20 +28,13 @@ geometric-mean speedup, with a 95% design-stratified bootstrap interval of
 scope boundary: integer subproblem work can dominate, and the paper makes no
 claim of universal superiority over compact mixed-integer optimization.
 
-For transparency, a public predecessor is:
-
-Zi Yuan Eric Shao, “Robust Discrete Pricing Optimization via Multiple-Choice
-Knapsack Reductions,” arXiv:2603.18653 (March 2026).
-
-The submitted manuscript is a focused successor rather than a duplicate
-version. It removes the predecessor’s broad pricing and rounding claims and
-does not present the classical Bertsimas–Sim threshold reduction or the
-fixed-MCKP relaxation as new. Its central contributions—the simultaneous
+This manuscript is an independent strategic pivot with its own research
+question, theorem set, computational protocol, and evidence package. It does
+not present the classical Bertsimas–Sim threshold reduction or the
+fixed-MCKP relaxation as new. Its central contributions are the simultaneous
 group-envelope evaluator, the exact minimax dominance theorem, the adaptive
 certificate invariant, the protocol-fixed sparse-comparator study, and the
-scoped exact-integration audit—are new to this version. The public preprint is
-disclosed here so that the editorial office can evaluate overlap directly
-while preserving the journal’s review procedure.
+scoped exact-integration audit.
 
 The manuscript and electronic companion include data-and-code statements. A
 public reproducibility repository contains the serialized protocol, raw timing

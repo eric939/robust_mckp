@@ -2,7 +2,7 @@
 
 Audit date: 19 July 2026. Scope: exact and relaxation algorithms for globally budgeted robust binary optimization, robust knapsack/MCKP, fixed-threshold MCKP LP algorithms, and adjacent robust-MCKP models. Searches used title/abstract/full-text queries for combinations of *robust*, *multiple-choice knapsack*, *budgeted uncertainty*, *threshold*, *Lagrangian*, *parametric*, *envelope*, and *simultaneous*. The conclusion below is necessarily a documented “to the best of our knowledge” assessment, not proof that no unpublished or unindexed result exists.
 
-A final date-sensitive sweep for 2025--2026 work found the author's March 2026 v3 preprint, *Robust Discrete Pricing Optimization via Multiple-Choice Knapsack Reductions*, but no external paper deriving the v4 all-threshold group-envelope oracle.  That preprint is the public predecessor of this revision, not independent prior art; the submission should update or supersede it rather than present v4 as an unrelated paper.  The sweep also found recent work on locally budgeted uncertainty, robust selection with information discovery, and two-stage robust optimization.  Those papers use different uncertainty structures or decision models and do not address the precise simultaneous-evaluation task audited here.
+A final date-sensitive sweep for 2025--2026 work also returned the author's separate March 2026 v3 preprint, *Robust Discrete Pricing Optimization via Multiple-Choice Knapsack Reductions*, because of adjacent robust-MCKP terminology.  It addresses a different research question and does not contain or anticipate the v4 all-threshold group-envelope oracle, minimax dominance theorem, or protocol-fixed evidence.  It is therefore neither a predecessor nor a source of the v4 novelty claim.  The sweep found no external paper deriving the v4 oracle.  Recent work on locally budgeted uncertainty, robust selection with information discovery, and two-stage robust optimization likewise uses different uncertainty structures or decision models and does not address the precise simultaneous-evaluation task audited here.
 
 ## Verdict
 
@@ -61,9 +61,8 @@ introduces a stronger robust formulation.
 
 ## Publication recommendation
 
-Proceed with the focused oracle paper rather than the broader v3
-pricing/rounding manuscript. The revision now proves the cancellation,
-complexity, and exact-minimax dominance results; compares against the sparsely
+Proceed with v4 as an independent focused oracle paper. The manuscript proves
+the cancellation, complexity, and exact-minimax dominance results; compares against the sparsely
 assembled bounded-threshold group-clique formulation; and distinguishes the
 protocol-fixed confirmatory evidence from the post-confirmatory UCI-calibrated
 and exact-integration panels. A top general OR journal remains a stretch

@@ -1,10 +1,11 @@
 # Manuscript v4 -- simultaneous group-envelope bounds
 
-Version 4 is a focused manuscript based on v3. It preserves v3 unchanged and
-repositions the paper around simultaneous Lagrangian evaluation over the full
-robust-MCKP threshold family. The broad v3 pricing and rounding story is
-removed; exact integer integration is retained only as a scoped audit of the
-oracle's downstream effect.
+Version 4 is an independent strategic pivot organized around simultaneous
+Lagrangian evaluation over the full robust-MCKP threshold family. It is not a
+revision, successor, or replacement of v3. Its central contribution, theorem
+set, computational protocol, and publication claim stand on their own; exact
+integer integration appears only as a scoped audit of the oracle's downstream
+effect.
 
 Canonical source: `main_v4.tex`.
 

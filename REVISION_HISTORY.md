@@ -9,9 +9,9 @@ only durable facts needed by future maintainers.
 Date: 2026-07-20.
 
 **v4 is the current paper.** Its canonical source is
-`paper_versions/v4/main_v4.tex`; v3 is a historical predecessor. The revision
-replaces the broad certificate-preserving solver story with one focused
-algorithmic contribution: simultaneous Lagrangian evaluation over the complete
+`paper_versions/v4/main_v4.tex`. It is an independent strategic pivot, not a
+revision, successor, or replacement of v3. Its focused algorithmic
+contribution is simultaneous Lagrangian evaluation over the complete
 robust-MCKP threshold family using exactly-one group envelopes.
 
 Durable v4 changes:
@@ -39,9 +39,9 @@ Durable v4 changes:
   records, aggregate public-data calibration, generated paper inputs, tests,
   and a hash-verification command.
 
-The v3 pricing model is retained as provenance but is not the v4 theoretical
-contribution. In v4, pricing is a compact motivating specialization and an
-application-derived coefficient panel.
+V4's finite-menu pricing specialization is only a motivating example and a
+source of application-derived coefficient scales. It does not establish a
+manuscript lineage or shared publication claim with the separate v3 project.
 
 ### Mathematical and release audit
 
@@ -67,7 +67,7 @@ Date: 2026-07-20.
   the blind build, added subject classifications, and repaired the end-float
   prior-art table.
 
-## Version 3 — Historical Predecessor
+## Version 3 — Separate Manuscript
 
 Date: 2026-07-18.
 

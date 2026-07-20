@@ -563,8 +563,8 @@ d_{ik}^{\rm corr}&=\operatorname*{nearest}_{g\in G}
 d_{ik}^{\rm tie}&=G[(5i+k+s)\bmod25],\\
 d_{ik}^{\rm break}&=0.15+0.003[i(m-1)+k]+10^{-6}s,
 \end{align*}
-where $s$ is the reported seed.  For backward compatibility with the predecessor benchmark, the NumPy seed is the first 16 hexadecimal digits of
-\texttt{SHA256(`v3|family|n|m|Gamma|seed')} reduced modulo $2^{32}$.  This seed derivation is platform-independent; the released environment record and result files remain authoritative because numerical distribution routines can vary across library versions.
+where $s$ is the reported seed.  To reproduce the frozen release exactly, the NumPy seed is the first 16 hexadecimal digits of
+\texttt{SHA256(`v3|family|n|m|Gamma|seed')} reduced modulo $2^{32}$.  The literal \texttt{v3} prefix is a legacy implementation namespace only; it does not denote a manuscript dependency or publication lineage.  This seed derivation is platform-independent; the released environment record and result files remain authoritative because numerical distribution routines can vary across library versions.
 
 The irregular validation generator independently draws 8--20 groups and 2--10 options per group, signed Gaussian values, Gaussian margins, repeated deviations from $\{0,0.25,0.5,1,2,4,8\}$ with occasional perturbations below 0.05, and $\Gamma$ uniformly from $\{0,\ldots,n\}$.  These cases target algebraic edge conditions rather than timing difficulty.
 

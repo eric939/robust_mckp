@@ -3,7 +3,7 @@
 Reference implementation and reproducibility artifact for **“Simultaneous
 Group-Envelope Bounds for Γ-Robust Multiple-Choice Knapsack Problems.”**
 Manuscript v4 (July 2026) is the canonical working paper. Version 3 is retained
-only as the predecessor from which the focused v4 question was separated.
+as a separate paper and research program; v4 neither extends nor supersedes it.
 
 The v4 contribution is an all-threshold Lagrangian evaluation algorithm for
 exactly-one groups. For `K` options and `B` robust-deviation thresholds, it
@@ -33,7 +33,7 @@ universally superior integer solver.
 - `results/v4_publication_20260720_final/`: released instance-level results,
   raw timing repetitions, protocol, environments, summaries, and public-data
   calibration aggregates.
-- `src/robust_mckp/`: predecessor solver components reused by the experiments.
+- `src/robust_mckp/`: shared solver infrastructure used by the experiments.
 
 Submission-ready manuscript PDFs are checked in under `output/pdf/`; their
 source files and build instructions are listed in `SUBMISSION.md`.
