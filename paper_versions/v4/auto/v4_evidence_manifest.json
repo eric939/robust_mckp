@@ -50,7 +50,7 @@
   "results_directory": "results/v4_publication_20260720_final",
   "source_files": {
     "Makefile": "0f3fa8e3b0d28b5eb421f9fcfa0ec0d30aadcfa3d2d0271b2db73a2aa73c439c",
-    "pyproject.toml": "f291b1ef4afade02c73ffc47d32f0ce592c1b6365b250954b0136aa805aac824",
+    "pyproject.toml": "e4b6057fa10dd4caf390a1e3818841118fc71043e35e2f82a6ea95939e2ea382",
     "research/benchmark_instances.py": "c4aae1b0e6243afe254793746318f07a301d593e671c117d517e0fb6701ea3ef",
     "research/bound_dominance.py": "2c175924c25dd80a73b73ee068e65af0e2ea88f4040d7513998d3ee315e81413",
     "research/compressed_interval_oracle.py": "8ebae95553ce8974b6a05474fcca58d63e9ef6cd940f9e6abc5f9ea8225ad263",
@@ -58,7 +58,7 @@
     "research/generate_v4_publication_artifacts.py": "e8b5fcb9794f8be1632099a334cbf5c2c0dc0fd279b0f54df917a1f8264d19a8",
     "research/integrated_exact_solver.py": "5d4e10ab381bdeaea1b96ca3bb50933b5fdfb1d2c5b87d0627b831334d5974fe",
     "research/novelty_go_no_go.py": "fced1387552fc653d29eb3d628844fb76080945be58115721df8437744d658c9",
-    "research/structural_feasibility_study.py": "f6338df2042e8289e2c3110d02c48aa3e80a79ae801d4a56a06ae72ea7b13476",
+    "research/structural_feasibility_study.py": "faca2d39ebb25211199304576ae4ca977bc02d7cd61b78f586501a7cb74e2eda",
     "research/v4_publication_campaign.py": "594b33ca72221bab3174ce77659fd552963d81c174aadc6116ab6f1e9b99906b",
     "scripts/benchmark_solvers.py": "cd8eab80b8366f74e1027211a35f0e996abc82a0f09d47c2d2cc36b2d5c193a0",
     "scripts/build_v4_anonymous_supplement.py": "981c67289fbed9be3e02a60773849783e261a7fd3c8ec3ef0478aaa99e613155",

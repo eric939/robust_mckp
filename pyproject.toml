@@ -29,6 +29,7 @@ experiments = [
 ]
 validation = [
   "scipy>=1.12",
+  "pyscipopt>=6.1",
 ]
 dev = [
   "pytest>=8",

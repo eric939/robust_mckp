@@ -22,6 +22,7 @@ import json
 import math
 import os
 import platform
+import shutil
 import subprocess
 import sys
 import time
@@ -65,7 +66,11 @@ from research.benchmark_instances import build_benchmark_instance  # noqa: E402
 
 
 TOL = 1e-8
-CDDEXEC = Path("/opt/homebrew/bin/cddexec_gmp")
+CDDEXEC = Path(
+    os.environ.get("CDDEXEC")
+    or shutil.which("cddexec_gmp")
+    or "/opt/homebrew/bin/cddexec_gmp"
+)
 
 
 class FixedThetaLPOracle:
