@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import argparse
 import csv
+import importlib.metadata
 import json
 import math
+import platform
 import statistics
 import sys
 import time
@@ -259,9 +261,23 @@ def stress_metrics(portfolio: Portfolio, sel: Sequence[int], protocol: str, scen
             xi = np.clip(rng.standard_t(df=3, size=(b, n)) / 1.5, -2.0, 2.0)
         elif protocol == "undercalibrated":
             xi = rng.uniform(-1.5, 1.5, size=(b, n))
+        elif protocol == "cross_price_substitution":
+            # Out-of-model sensitivity: demand shifts toward relatively
+            # cheaper products within a segment. The substitution loading is
+            # randomized by scenario; it is not an estimated cross-price
+            # demand model.
+            xi = rng.uniform(-1.0, 1.0, size=(b, n))
         else:
             raise ValueError(protocol)
         realized = np.maximum(0.0, g[None, :] + xi * d[None, :])
+        if protocol == "cross_price_substitution":
+            rel_price = arr["x"] / np.maximum(portfolio.reference_prices, 1e-12) - 1.0
+            relative_position = np.zeros(n, dtype=float)
+            for sid in unique_seg:
+                mask = seg_ids == sid
+                relative_position[mask] = float(np.mean(rel_price[mask])) - rel_price[mask]
+            strength = rng.uniform(0.25, 1.0, size=(b, 1))
+            realized = np.maximum(0.0, realized + strength * relative_position[None, :] * g[None, :])
         margins.append(realized @ k)
     values = np.concatenate(margins)
     shortfall = np.maximum(0.0, -values)
@@ -397,9 +413,23 @@ def main() -> None:
     exact_rows: List[Dict[str, object]] = []
     config = vars(args).copy()
     config["calibration_source_used"] = source_used
+    config["resolved_seeds"] = list(range(10_000, 10_000 + args.seeds))
+    config["resolved_gamma_values"] = gamma_grid(args.n, args.gamma_grid)
+    config["stress_randomization"] = "common random numbers by portfolio, evaluation budget, and protocol"
+    config["python_version"] = platform.python_version()
+    config["platform"] = platform.platform()
+    config["package_versions"] = {}
+    for package in ("numpy", "scipy", "highspy", "pyscipopt"):
+        try:
+            config["package_versions"][package] = importlib.metadata.version(package)
+        except importlib.metadata.PackageNotFoundError:
+            config["package_versions"][package] = "unavailable"
     (out_dir / "pathC_config.json").write_text(json.dumps(config, indent=2))
 
-    protocols = ["iid", "common_factor", "segment_block", "heavy_tail", "undercalibrated"]
+    protocols = ["iid", "common_factor", "segment_block", "heavy_tail", "undercalibrated", "cross_price_substitution"]
+    config["stress_protocols"] = protocols
+    config["cross_price_protocol_scope"] = "stylized out-of-model sensitivity; not estimated cross-elasticities"
+    (out_dir / "pathC_config.json").write_text(json.dumps(config, indent=2))
     for seed_idx in range(args.seeds):
         seed = 10_000 + seed_idx
         portfolio = build_portfolio(cal, seed=seed, n=args.n, m=args.m, default_band=args.fairness_band)
@@ -447,14 +477,15 @@ def main() -> None:
                         "positive_margin_gini": gini_positive(margin),
                     }
                 )
-                rng_base = np.random.SeedSequence([seed, gamma, policy_gamma, len(method)])
                 for p_idx, protocol in enumerate(protocols):
                     violation, mean_shortfall, q05 = stress_metrics(
                         portfolio,
                         sel,
                         protocol,
                         args.stress_scenarios,
-                        np.random.default_rng(rng_base.spawn(len(protocols))[p_idx]),
+                        # Common random numbers make stress comparisons paired
+                        # across policies at the same evaluation budget.
+                        np.random.default_rng(np.random.SeedSequence([seed, gamma, p_idx, 20260714])),
                     )
                     stress_rows.append(
                         {

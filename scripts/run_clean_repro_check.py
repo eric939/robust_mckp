@@ -15,36 +15,14 @@ OUT_DIR = ROOT / "results" / "clean_repro_check"
 SUMMARY = OUT_DIR / "clean_repro_check_summary.txt"
 
 KEY_SCRIPTS = [
-    "scripts/run_publication_benchmarks.py",
-    "scripts/summarize_publication_benchmarks.py",
-    "scripts/plot_publication_benchmarks.py",
-    "scripts/run_publishable_experiments.py",
-    "scripts/run_solver_benchmarks.py",
-    "scripts/plot_publishable_results.py",
+    "scripts/run_v3_experiments.py",
+    "scripts/build_v3_experiment_evidence.py",
+    "scripts/benchmark_solvers.py",
     "scripts/run_pathC_data_calibration.py",
     "scripts/run_pathC_semisynthetic_application.py",
-    "scripts/summarize_pathC_application.py",
-    "scripts/plot_pathC_application.py",
-    "scripts/summarize_empirical_synthesis.py",
-    "scripts/plot_empirical_synthesis.py",
-    "scripts/run_branching_strategy_diagnostics.py",
-    "scripts/summarize_branching_strategy_diagnostics.py",
-    "scripts/plot_branching_strategy_diagnostics.py",
-    "scripts/run_tight_capacity_diagnostics.py",
-    "scripts/summarize_tight_capacity_diagnostics.py",
-    "scripts/plot_tight_capacity_diagnostics.py",
-    "scripts/run_fixed_theta_bnb_benchmarks.py",
-    "scripts/run_global_theta_bnb_benchmarks.py",
-    "scripts/run_exact_bnb_performance_benchmarks.py",
     "scripts/run_parametric_sweep_ablation.py",
-    "scripts/summarize_parametric_sweep_ablation.py",
     "scripts/run_parametric_sweep_benchmarks.py",
-    "scripts/summarize_parametric_sweep_benchmarks.py",
     "scripts/run_segment_local_budget_experiments.py",
-    "scripts/summarize_segment_local_budget_experiments.py",
-    "scripts/build_parametric_sweep_claim_audit.py",
-    "scripts/run_retail_publishable.py",
-    "scripts/run_extended_publishable_experiments.py",
     "scripts/run_true_clean_room_check.py",
 ]
 
@@ -92,132 +70,58 @@ def main() -> int:
         log("3. Py-compile experiment scripts")
         run([sys.executable, "-m", "py_compile", *KEY_SCRIPTS])
 
-        log("4. Run synthetic benchmark smoke")
+        smoke = "results/clean_repro_check/v3_smoke"
+        log("4. Run consolidated certificate-failure smoke")
         run(
             [
                 sys.executable,
-                "scripts/run_publication_benchmarks.py",
-                "--smoke",
-                "--output-dir",
-                "results/clean_repro_check/publication_benchmarks_smoke",
-                "--time-limit",
-                "1",
-                "--node-limit",
-                "2000",
+                "scripts/run_v3_experiments.py", "failures", "--output-dir", smoke,
+                "--failure-replicates", "3",
             ]
         )
 
-        log("5. Run parametric sweep ablation smoke")
+        log("5. Run consolidated hard-instance smoke")
         run(
             [
-                sys.executable,
-                "scripts/run_parametric_sweep_ablation.py",
-                "--smoke",
-                "--output-dir",
-                "results/clean_repro_check/parametric_sweep_ablation_smoke",
-                "--validate",
-            ]
-        )
-        run(
-            [
-                sys.executable,
-                "scripts/summarize_parametric_sweep_ablation.py",
-                "--input-dir",
-                "results/clean_repro_check/parametric_sweep_ablation_smoke",
-                "--tables-dir",
-                "results/clean_repro_check/generated_tables/parametric_sweep",
-                "--label",
-                "smoke",
+                sys.executable, "scripts/run_v3_experiments.py", "hard", "--output-dir", smoke,
+                "--families", "dense_frontier", "--n-values", "12", "--m", "6",
+                "--gamma-modes", "sqrt", "--seeds", "1", "--time-limit", "0.25",
             ]
         )
 
-        log("6. Run parametric sweep solver smoke")
+        log("6. Run consolidated anytime smoke")
         run(
             [
-                sys.executable,
-                "scripts/run_parametric_sweep_benchmarks.py",
-                "--smoke",
-                "--output-dir",
-                "results/clean_repro_check/parametric_sweep_smoke",
-                "--time-limit",
-                "2",
-                "--node-limit",
-                "5000",
-                "--validate-sweep-sampled",
-            ]
-        )
-        run(
-            [
-                sys.executable,
-                "scripts/summarize_parametric_sweep_benchmarks.py",
-                "--input-dir",
-                "results/clean_repro_check/parametric_sweep_smoke",
-                "--tables-dir",
-                "results/clean_repro_check/generated_tables/parametric_sweep",
-                "--label",
-                "smoke",
+                sys.executable, "scripts/run_v3_experiments.py", "anytime", "--output-dir", smoke,
+                "--anytime-families", "dense_frontier", "--anytime-n-values", "12", "--m", "6",
+                "--anytime-budgets", "0.1", "--anytime-seeds", "1",
             ]
         )
 
-        log("7. Run segment-local budget smoke")
+        log("7. Generate synthetic application calibration")
         run(
             [
-                sys.executable,
-                "scripts/run_segment_local_budget_experiments.py",
-                "--smoke",
-                "--output-dir",
-                "results/clean_repro_check/segment_local_budget_smoke",
-            ]
-        )
-        run(
-            [
-                sys.executable,
-                "scripts/summarize_segment_local_budget_experiments.py",
-                "--input-dir",
-                "results/clean_repro_check/segment_local_budget_smoke",
-                "--tables-dir",
-                "results/clean_repro_check/generated_tables/parametric_sweep",
-                "--label",
-                "smoke",
+                sys.executable, "scripts/run_pathC_data_calibration.py", "--source", "synthetic_only",
+                "--output-dir", "results/pathC/calibration",
             ]
         )
 
-        log("8. Generate synthetic Path C calibration")
+        log("8. Run consolidated application smoke")
         run(
             [
-                sys.executable,
-                "scripts/run_pathC_data_calibration.py",
-                "--source",
-                "synthetic_only",
-                "--output-dir",
-                "results/clean_repro_check/pathC_calibration",
+                sys.executable, "scripts/run_v3_experiments.py", "application", "--output-dir", smoke,
+                "--application-seeds", "1", "--application-n", "30", "--application-m", "6",
+                "--application-scenarios", "100", "--application-exact-n", "12",
+                "--application-exact-time-limit", "1",
             ]
         )
 
-        log("9. Run bounded Path C smoke")
+        log("9. Audit and build consolidated evidence")
         run(
             [
-                sys.executable,
-                "scripts/run_pathC_semisynthetic_application.py",
-                "--calibration-dir",
-                "results/clean_repro_check/pathC_calibration",
-                "--output-dir",
-                "results/clean_repro_check/pathC_smoke",
-                "--seeds",
-                "1",
-                "--n",
-                "60",
-                "--m",
-                "8",
-                "--stress-scenarios",
-                "200",
-                "--gamma-grid",
-                "0,sqrt,n",
-                "--run-exact-small-subset",
-                "--exact-time-limit",
-                "2",
-                "--exact-node-limit",
-                "5000",
+                sys.executable, "scripts/build_v3_experiment_evidence.py", "--input-dir", smoke,
+                "--table-dir", f"{smoke}/tables", "--figure-dir", f"{smoke}/figures",
+                "--macro-file", f"{smoke}/v3_numbers.tex",
             ]
         )
 

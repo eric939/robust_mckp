@@ -37,12 +37,6 @@ EXCLUDE_NAMES = {
 EXCLUDE_SUFFIXES = {".pyc", ".pyo"}
 EXCLUDE_PATTERNS = {
     "* 2.py",
-    "audit_v2_claims_against_results.py",
-    "check_reported_numbers.py",
-    "create_*package*.py",
-    "create_final_*bundle.py",
-    "create_submission_gate_packages.py",
-    "plot_journal_composite_figures.py",
 }
 
 

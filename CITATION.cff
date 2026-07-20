@@ -6,7 +6,7 @@ version: "0.1.0"
 license: "MIT"
 repository-code: "https://github.com/eric939/robust_mckp"
 url: "https://github.com/eric939/robust_mckp"
-date-released: 2026-05-22
+date-released: 2026-07-20
 authors:
   - family-names: "Shao"
     given-names: "Eric"
@@ -14,7 +14,7 @@ authors:
     email: "ershao@student.ethz.ch"
 preferred-citation:
   type: article
-  title: "Certifying Gamma-Robust Discrete Pricing via Full-Breakpoint Multiple-Choice Knapsack Decomposition"
+  title: "Simultaneous Group-Envelope Bounds for Gamma-Robust Multiple-Choice Knapsack Problems"
   year: 2026
   journal: "Manuscript submitted for publication"
   authors:

@@ -1,6 +1,12 @@
 PYTHON ?= python3
+TECTONIC ?= tectonic
+V4_RELEASE_RESULTS ?= results/v4_publication_20260720_final
+V4_RUN_RESULTS ?= results/v4_reproduction
+V4_RUN_PAPER ?= tmp/v4_reproduction_paper
+V4_CALIBRATION ?= $(V4_RELEASE_RESULTS)/uci_calibration
 
-.PHONY: install-dev test check clean-check publishable-smoke solver-smoke pathc-smoke clean
+.PHONY: install-dev test check clean-check v3-smoke v3-evidence \
+	v4-verify v4-evidence v4-exact-audit v4-reproduce v4-paper v4-package clean
 
 install-dev:
 	$(PYTHON) -m pip install -U pip
@@ -16,16 +22,61 @@ check:
 clean-check:
 	$(PYTHON) scripts/run_clean_repro_check.py --quick
 
-publishable-smoke:
-	$(PYTHON) scripts/run_publication_benchmarks.py --smoke --output-dir results/publication_benchmarks_smoke
-	$(PYTHON) scripts/run_publishable_experiments.py --smoke
+v3-smoke:
+	$(PYTHON) scripts/run_clean_repro_check.py --quick
 
-solver-smoke:
-	$(PYTHON) scripts/run_solver_benchmarks.py --smoke
+v3-evidence:
+	MPLCONFIGDIR="$$HOME/.cache/matplotlib" $(PYTHON) scripts/build_v3_experiment_evidence.py \
+		--input-dir results/v3_experiments_20260718 \
+		--table-dir paper_versions/v3/tables/v3_experiments \
+		--figure-dir paper_versions/v3/figures/v3_experiments \
+		--macro-file paper_versions/v3/auto/v3_experiment_numbers.tex
 
-pathc-smoke:
-	$(PYTHON) scripts/run_pathC_data_calibration.py --source synthetic_only --output-dir results/pathC/calibration
-	$(PYTHON) scripts/run_pathC_semisynthetic_application.py --calibration-dir results/pathC/calibration --output-dir results/pathC/semisynthetic_application_smoke --seeds 1 --n 60 --m 8 --stress-scenarios 200 --gamma-grid 0,sqrt,n --run-exact-small-subset
+v4-verify: test
+	MPLCONFIGDIR="$$HOME/.cache/matplotlib" $(PYTHON) scripts/verify_v4_release.py \
+		--results $(V4_RELEASE_RESULTS) \
+		--paper paper_versions/v4
+
+v4-evidence:
+	MPLCONFIGDIR="$$HOME/.cache/matplotlib" $(PYTHON) research/generate_v4_publication_artifacts.py \
+		--results $(V4_RELEASE_RESULTS) \
+		--paper paper_versions/v4
+
+v4-exact-audit:
+	env OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
+		$(PYTHON) research/exact_integration_campaign.py \
+		--output-dir $(V4_RELEASE_RESULTS)/exact_integration \
+		--sizes 30 --seeds 0,1,2 --repetitions 2 --time-limit 5
+
+v4-reproduce: test
+	env OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
+		$(PYTHON) scripts/run_v4_publication_campaign.py \
+		--output-dir $(V4_RUN_RESULTS) \
+		--calibration-dir $(V4_CALIBRATION)
+	env OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
+		$(PYTHON) research/exact_integration_campaign.py \
+		--output-dir $(V4_RUN_RESULTS)/exact_integration \
+		--sizes 30 --seeds 0,1,2 --repetitions 2 --time-limit 5
+	MPLCONFIGDIR="$$HOME/.cache/matplotlib" $(PYTHON) research/generate_v4_publication_artifacts.py \
+		--results $(V4_RUN_RESULTS) \
+		--paper $(V4_RUN_PAPER)
+
+v4-paper:
+	cd paper_versions/v4 && $(TECTONIC) main_v4.tex
+	cd paper_versions/v4 && $(TECTONIC) main_v4_opre.tex
+	cd paper_versions/v4 && $(TECTONIC) main_v4_opre_blind.tex
+	cd paper_versions/v4 && $(TECTONIC) main_v4_ec.tex
+	cd paper_versions/v4 && $(TECTONIC) main_v4_ec_blind.tex
+	cd paper_versions/v4 && $(TECTONIC) executive_summary_opre.tex
+
+v4-package: v4-paper
+	mkdir -p output/pdf
+	cp paper_versions/v4/main_v4.pdf output/pdf/robust_mckp_v4_full.pdf
+	cp paper_versions/v4/main_v4_opre.pdf output/pdf/robust_mckp_v4_opre.pdf
+	cp paper_versions/v4/main_v4_opre_blind.pdf output/pdf/robust_mckp_v4_opre_blind.pdf
+	cp paper_versions/v4/main_v4_ec.pdf output/pdf/robust_mckp_v4_electronic_companion.pdf
+	cp paper_versions/v4/main_v4_ec_blind.pdf output/pdf/robust_mckp_v4_electronic_companion_blind.pdf
+	cp paper_versions/v4/executive_summary_opre.pdf output/pdf/robust_mckp_v4_executive_summary.pdf
 
 clean:
 	rm -rf results paper .pytest_cache

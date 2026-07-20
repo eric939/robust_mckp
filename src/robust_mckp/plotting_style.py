@@ -20,6 +20,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
+from matplotlib.ticker import AutoMinorLocator
 from cycler import cycler
 
 
@@ -133,6 +134,8 @@ def apply_top_journal_style() -> None:
             "axes.spines.top": False,
             "axes.spines.right": False,
             "axes.grid": True,
+            "axes.grid.axis": "y",
+            "axes.axisbelow": True,
             "axes.edgecolor": "0.25",
             "axes.linewidth": 0.75,
             "grid.color": GRID,
@@ -141,10 +144,18 @@ def apply_top_journal_style() -> None:
             "lines.linewidth": 1.45,
             "lines.markersize": 4.0,
             "legend.handlelength": 2.2,
+            "legend.frameon": False,
+            "legend.handletextpad": 0.55,
             "legend.borderaxespad": 0.2,
             "legend.columnspacing": 0.9,
+            "lines.solid_capstyle": "round",
+            "lines.dash_capstyle": "round",
             "figure.dpi": 150,
+            "figure.facecolor": "white",
+            "axes.facecolor": "white",
             "savefig.dpi": 400,
+            "savefig.facecolor": "white",
+            "savefig.transparent": False,
             "savefig.bbox": "tight",
             "savefig.pad_inches": 0.035,
             "pdf.fonttype": 42,
@@ -153,6 +164,38 @@ def apply_top_journal_style() -> None:
             "axes.prop_cycle": cycler(color=safe_color_cycle()),
         }
     )
+
+
+def panel_label(ax: Axes, label: str) -> None:
+    """Place a consistent journal-style panel label outside the plotting area."""
+
+    ax.text(
+        -0.13,
+        1.045,
+        label,
+        transform=ax.transAxes,
+        ha="left",
+        va="bottom",
+        fontsize=8.2,
+        fontweight="bold",
+        color=INK,
+        clip_on=False,
+    )
+
+
+def polish_axis(ax: Axes, *, grid_axis: str = "y", minor_y: bool = False) -> None:
+    """Apply a restrained grid and tick treatment after plotting a panel."""
+
+    ax.grid(False)
+    if grid_axis in {"x", "both"}:
+        ax.grid(True, axis="x", which="major", color=GRID, linewidth=0.6)
+    if grid_axis in {"y", "both"}:
+        ax.grid(True, axis="y", which="major", color=GRID, linewidth=0.6)
+    if minor_y and ax.get_yscale() == "linear":
+        ax.yaxis.set_minor_locator(AutoMinorLocator(2))
+        ax.grid(True, axis="y", which="minor", color="#F2F2F2", linewidth=0.4)
+    ax.tick_params(which="major", length=3.2, width=0.7, direction="out")
+    ax.tick_params(which="minor", length=1.8, width=0.55, direction="out")
 
 
 def solver_display_name(name: str) -> str:

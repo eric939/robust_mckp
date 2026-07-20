@@ -1,137 +1,89 @@
 # robust_mckp
 
-Reference solver and reproducibility code for the manuscript
-**“Certifying Γ-Robust Discrete Pricing via Full-Breakpoint
-Multiple-Choice Knapsack Decomposition.”**  The package implements
-finite-menu integer-budget Γ-robust MCKP routines, including HullRound,
-exact θ-enumerated branch-and-bound, and an exact parametric θ-sweep with
-incremental fixed-θ data and safe hull maintenance.
+Reference implementation and reproducibility artifact for **“Simultaneous
+Group-Envelope Bounds for Γ-Robust Multiple-Choice Knapsack Problems.”**
+Manuscript v4 (July 2026) is the canonical working paper. Version 3 is retained
+only as the predecessor from which the focused v4 question was separated.
 
-This GitHub repository intentionally contains code needed to install the
-solver, run tests, and regenerate computational experiments. Manuscript source,
-generated figures, generated tables, benchmark CSVs, and local review packages
-belong to the journal/arXiv artifact bundle rather than the public code
-repository.
+The v4 contribution is an all-threshold Lagrangian evaluation algorithm for
+exactly-one groups. For `K` options and `B` robust-deviation thresholds, it
+evaluates a multiplier in `O(B + K log(B + 1))` time and `O(B + K)` working
+storage. The paper combines this oracle with a valid adaptive certificate for
+the maximum fixed-threshold MCKP LP value and proves that the exact minimax
+bound is no weaker than the bounded-threshold group-clique LP. A released exact
+interval-search integration validates global gap accounting without claiming a
+universally superior integer solver.
 
-## Contents
+## Repository map
 
-- `README.md`: project overview and quick commands.
-- `REPRODUCIBILITY.md`: environment, tests, smoke checks, and experiment entry points.
-- `SUBMISSION.md`: public/blind manuscript and artifact-package checklist.
-- `REVISION_HISTORY.md`: durable scientific guardrails and latest validation status.
-- `src/robust_mckp/`: solver package, including HullRound and exact
-  θ-enumerated branch-and-bound.
-- `src/robust_mckp/parametric_sweep.py`: exact full-breakpoint parametric
-  θ sweep with incremental `s^theta` updates and safe hull reuse/rebuilds.
-- `src/robust_mckp/local_budget.py`: exact segment-local Gamma-budget extension
-  for small θ-vector products.
-- `src/robust_mckp/milp_baselines.py`: optional θ-decomposition MILP
-  baselines when solver packages are installed/licensed.
-- `experiments_nested/`: synthetic and nested robust-MCKP experiment drivers.
-- `experiments_case_retail/`: semi-synthetic pricing experiment driver.
-- `scripts/`: benchmark, plotting, summarization, and reproducibility scripts.
-- `scripts/run_parametric_sweep_benchmarks.py`: many-θ, tight-capacity, and
-  control benchmark driver for the exact sweep.
-- `scripts/run_parametric_sweep_ablation.py`: data-construction and root-bound
-  ablation for independent recomputation versus incremental sweep modes.
-- `scripts/run_segment_local_budget_experiments.py`: guarded exact smoke
-  experiments for segment-local Gamma budgets.
-- `tests/`: public API, certificate, and exact-solver tests.
+- `research/compressed_interval_oracle.py`: proposed group-envelope oracle.
+- `research/bound_dominance.py`: exact epigraph LP used to validate the formal
+  dominance theorem.
+- `research/integrated_exact_solver.py`: exact integer threshold-interval
+  search using either the envelope or clique bound.
+- `research/exact_integration_campaign.py`: controlled exact-solver audit.
+- `research/v4_publication_campaign.py`: frozen validation and experiment
+  protocol, gates, generators, and statistical summaries.
+- `research/generate_v4_publication_artifacts.py`: tables, figure, macros, and
+  hash manifest used by the manuscript.
+- `research/LITERATURE_NOVELTY_AUDIT_V4.md`: source-by-source novelty audit.
+- `tests/test_compressed_interval_oracle.py` and
+  `tests/test_v4_publication_campaign.py`: v4 algebra and protocol tests.
+- `paper_versions/v4/`: canonical manuscript source and generated inputs.
+- `results/v4_publication_20260720_final/`: released instance-level results,
+  raw timing repetitions, protocol, environments, summaries, and public-data
+  calibration aggregates.
+- `src/robust_mckp/`: predecessor solver components reused by the experiments.
 
-Generated outputs are written under `results/`, `paper_versions/`, `output/`,
-`submission_ready/`, or other local artifact directories and are ignored by git.
+Submission-ready manuscript PDFs are checked in under `output/pdf/`; their
+source files and build instructions are listed in `SUBMISSION.md`.
 
-## Main Algorithmic Contribution
-
-- Finite full-breakpoint θ decomposition using
-  `B = {0} union {|t_ij|}` from the original admissible options.
-- Exact parametric sweep over the same full breakpoint set as enumeration.
-- Incremental maintenance of `s^theta`, followed by exact recomputation of item
-  baselines, fixed-θ costs, and capacity at every θ.
-- Safe hull reuse only when the item cost-value point set is unchanged within
-  tolerance; otherwise hulls are rebuilt exactly.
-- Exact B&B still branches over original integer-safe non-dominated options,
-  including below-upper-hull options.
-- Every incumbent is final-checked by the original robust certificate.
-
-## Installation
+## Install and verify
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install -U pip
 python3 -m pip install -e ".[experiments,validation,dev]"
+make v4-verify PYTHON=.venv/bin/python
 ```
 
-Minimal package-only install from GitHub:
+`v4-verify` runs the test suite, checks every released evidence hash, regenerates
+the manuscript tables/macros/figure in a temporary directory, and compares the
+generated text artifacts with the checked-in versions. It does not rerun the
+long timing campaign.
+
+To rerun the complete frozen campaign and rebuild its paper artifacts:
 
 ```bash
-python3 -m pip install "git+https://github.com/eric939/robust_mckp.git"
+make v4-reproduce PYTHON=.venv/bin/python
 ```
 
-## Quick Check
+The full command uses the released UCI-derived aggregate calibration, never the
+raw transaction file. See `REPRODUCIBILITY.md` for the protocol, run-time scope,
+data provenance, and separate manuscript-build command.
 
-```bash
-.venv/bin/python -m pytest -q
-.venv/bin/python -m pytest tests/test_parametric_theta_sweep.py tests/test_segment_local_budgets.py -q
-.venv/bin/python scripts/run_parametric_sweep_ablation.py --smoke --output-dir results/parametric_sweep_ablation_smoke --validate
-.venv/bin/python scripts/run_parametric_sweep_benchmarks.py --smoke --output-dir results/parametric_sweep_smoke --validate-sweep-sampled
-.venv/bin/python scripts/run_clean_repro_check.py --quick
-```
+## Headline released evidence
 
-The clean check runs tests, py-compiles the experiment scripts, and executes
-small smoke experiments into `results/clean_repro_check/`.
+- 40/40 algebraic and complete-scan validation cases pass.
+- 60/60 primary instances reach scaled tolerance `1e-6`; the proposed method
+  wins 60/60 paired timings with geometric-mean speedup 2.456 (95% stratified
+  bootstrap CI [2.290, 2.649]).
+- 24/24 common-trace cases favor the proposed oracle, with geometric-mean
+  speedup 3.272 and no weaker matched interval bound.
+- All 36 robustness cases and all eight stress cases reach tolerance; the
+  stress geometric-mean speedup is 5.766 through 5,760 groups.
+- The post-confirmatory, 200,000-record UCI-calibrated semi-synthetic panel wins
+  9/9 timings, with geometric-mean speedup 1.799 (95% bootstrap interval
+  [1.527, 2.186]).
+- In the separate 12-instance exact audit, envelope and clique interval search
+  each certify 10 cases, enumeration certifies 11, and compact SCIP certifies
+  all 12; certified objectives agree within `1.14e-13`.
 
-## Reproducing Experiments
+These are instance-level paired results on the recorded single-threaded
+environment, not universal performance claims.
 
-Smoke runs:
+## Citation and license
 
-```bash
-.venv/bin/python scripts/run_parametric_sweep_ablation.py --smoke --output-dir results/parametric_sweep_ablation_smoke --validate
-.venv/bin/python scripts/summarize_parametric_sweep_ablation.py --input-dir results/parametric_sweep_ablation_smoke --tables-dir results/parametric_sweep_summaries/tables --label smoke
-.venv/bin/python scripts/run_parametric_sweep_benchmarks.py --smoke --output-dir results/parametric_sweep_smoke --validate-sweep-sampled
-.venv/bin/python scripts/summarize_parametric_sweep_benchmarks.py --input-dir results/parametric_sweep_smoke --tables-dir results/parametric_sweep_summaries/tables --label smoke
-.venv/bin/python scripts/run_segment_local_budget_experiments.py --smoke --output-dir results/segment_local_budget_smoke
-.venv/bin/python scripts/summarize_segment_local_budget_experiments.py --input-dir results/segment_local_budget_smoke --tables-dir results/parametric_sweep_summaries/tables --label smoke
-.venv/bin/python scripts/run_publication_benchmarks.py --smoke --output-dir results/publication_benchmarks_smoke
-.venv/bin/python scripts/run_publishable_experiments.py --smoke
-.venv/bin/python scripts/run_solver_benchmarks.py --smoke
-.venv/bin/python scripts/run_pathC_data_calibration.py --source synthetic_only --output-dir results/pathC/calibration
-.venv/bin/python scripts/run_pathC_semisynthetic_application.py --calibration-dir results/pathC/calibration --output-dir results/pathC/semisynthetic_application_smoke --seeds 1 --n 60 --m 8 --stress-scenarios 200 --gamma-grid 0,sqrt,n --run-exact-small-subset
-```
-
-The parametric-sweep paper-lite templates are:
-
-```bash
-.venv/bin/python scripts/run_parametric_sweep_ablation.py --paper-lite --families many_theta,tight_capacity,non_tight_control --output-dir results/parametric_sweep_ablation_lite --validate-sampled --resume
-.venv/bin/python scripts/run_parametric_sweep_benchmarks.py --paper-lite --families many_theta,tight_capacity,non_tight_control --methods hullround,exact_enum_current,exact_sweep_new,scipy_highs,scip,gurobi,cplex --time-limit 45 --node-limit 300000 --output-dir results/parametric_sweep_lite --validate-sweep-sampled --resume
-```
-
-Use generated CSV summaries for exactness, certification, and timing claims.
-The repository is designed to report unavailable solver backends explicitly and
-to avoid broad runtime-superiority claims unless a completed matched solver
-campaign supports them.
-
-Larger benchmark campaigns use the same scripts with the desired grid,
-time-limit, and output-directory options. Optional exact-solver baselines use
-SCIP, HiGHS/SciPy, Gurobi, and CPLEX only when installed and licensed;
-commercial solvers are not required. Exact speed claims should be made only
-from generated CSV summaries on matched rows.
-
-## Citation
-
-Please cite the software and accompanying manuscript. A machine-readable
-citation file is included in `CITATION.cff`.
-
-```bibtex
-@misc{shao2026robustmckp,
-  title = {robust_mckp: Certifying Gamma-Robust Discrete Pricing via Full-Breakpoint MCKP Decomposition},
-  author = {Shao, Eric},
-  year = {2026},
-  howpublished = {\url{https://github.com/eric939/robust_mckp}}
-}
-```
-
-## License
-
-MIT. See `LICENSE`.
+Please cite `CITATION.cff` and the accompanying manuscript. Licensed under the
+MIT License; see `LICENSE`.

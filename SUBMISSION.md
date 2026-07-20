@@ -1,119 +1,107 @@
-# Submission Package
+# Submission and Public Artifact Manifest
 
-This file is the public submission/package manifest. It distinguishes the
-public GitHub code repository from the local journal/arXiv manuscript artifact
-bundle.
+**Current-version flag (2026-07-20):** `paper_versions/v4/` is canonical.
+Version 3 is a historical predecessor and must not be used for submission.
 
-## Public and Blind Builds
+## Journal builds
 
-Public manuscript, from the local artifact workspace:
+The main source is `paper_versions/v4/main_v4.tex`. The wrappers select public
+or blind metadata and main-paper or electronic-companion content:
 
-```bash
-cd paper_versions/v2
-tectonic --keep-logs main_v2.tex
-cp main_v2.pdf ../../submission_ready/main_v2_public.pdf
-cp main_v2.tex ../../submission_ready/main_v2.tex
-```
+- `main_v4_opre.tex`: public main manuscript;
+- `main_v4_opre_blind.tex`: anonymous main manuscript;
+- `main_v4_ec.tex`: public electronic companion;
+- `main_v4_ec_blind.tex`: anonymous electronic companion; and
+- `executive_summary_opre.tex`: optional one-page editorial summary.
 
-Blind manuscript, from the local artifact workspace:
-
-```bash
-cd paper_versions/v2
-tectonic --keep-logs main_v2_blind.tex
-cp main_v2_blind.pdf ../../submission_ready/main_v2_blind_submission.pdf
-cp main_v2_blind.tex ../../submission_ready/main_v2_blind.tex
-```
-
-The public build contains the author identity, prior-version disclosure, public
-GitHub URL, acknowledgments, and data/code statement. The blind build should
-not contain the author name, institutional metadata, GitHub username, arXiv ID,
-acknowledgments, or self-citation bibliography item.
-
-## Code and Artifact Availability
-
-Public repository:
-
-```text
-https://github.com/eric939/robust_mckp
-```
-
-Verify the current public HEAD with:
+Build and package all six PDFs with:
 
 ```bash
-git ls-remote https://github.com/eric939/robust_mckp.git HEAD
+make v4-package
 ```
 
-The public repository contains the solver package, tests, experiment drivers,
-plotting/summarization scripts, and reproducibility instructions. The exact
-submission snapshot also includes generated manuscript artifacts that are not
-tracked in the public Git repository.
+The same target also builds `main_v4.pdf`, the convenient combined
+main-plus-appendix version; it is not a separate journal upload.
 
-Expected submission artifact contents:
+The current local builds are 16 pages for each OPRE main-paper variant, four
+pages for each companion, 15 pages for the combined reading version, and one
+page for the executive summary. The summary is cover-letter support and should
+be uploaded only if the journal permits it.
 
-- `submission_ready/main_v2.tex`
-- `submission_ready/main_v2_blind.tex`
-- `submission_ready/main_v2_public.pdf`
-- `submission_ready/main_v2_blind_submission.pdf`
-- `submission_ready/auto/`
-- `submission_ready/tables/`
-- `submission_ready/figures/`
-- `submission_ready/result_summaries/`
-- `src/`
-- `scripts/`
-- `tests/`
-- `README.md`
-- `REPRODUCIBILITY.md`
-- `SUBMISSION.md`
-- `REVISION_HISTORY.md`
+The OPRE wrapper is prepared as a Focused Technical submission: the abstract
+is text-forward, the introduction contains no equations or mathematical
+notation, and all mathematical proofs appear in the main paper. The electronic
+companion is limited to comparator implementation, exact-integration audit,
+statistical protocol, generators, and reproducibility detail.
 
-Refresh the lightweight artifact bundle with:
+For anonymous review, upload only the blind main manuscript and blind
+electronic companion. Inspect the journal-generated merged proof before final
+submission. Do not upload the public PDFs or `CITATION.cff` in an anonymous
+submission.
+
+## Public GitHub artifact
+
+Repository: <https://github.com/eric939/robust_mckp>
+
+The v4 branch/package must expose:
+
+- `research/compressed_interval_oracle.py`;
+- `research/bound_dominance.py`, `research/integrated_exact_solver.py`, and
+  `research/exact_integration_campaign.py`;
+- the complete frozen campaign and artifact generator under `research/`;
+- all v4-specific tests;
+- `paper_versions/v4/` source, generated TeX inputs, vector figure, and evidence
+  manifest;
+- `results/v4_publication_20260720_final/`, including raw timing repetitions,
+  instance-level records, summaries, protocol, environments, and UCI-derived
+  aggregates; and
+- current `README.md`, `REPRODUCIBILITY.md`, `SUBMISSION.md`, `CITATION.cff`,
+  and `REVISION_HISTORY.md`.
+
+Submission-ready article PDFs are checked in under `output/pdf/` and can also
+be attached to a tagged GitHub release or deposited with the journal artifact.
+Raw UCI Online Retail transactions are not redistributed.
+
+## Pre-submission checks
 
 ```bash
-zip -qr submission_artifacts_bundle.zip \
-  submission_ready src scripts tests \
-  README.md REPRODUCIBILITY.md SUBMISSION.md REVISION_HISTORY.md \
-  -x '*.DS_Store' '*__pycache__*' '*.pyc' '*.log' '*.aux' '*.out' '*.synctex.gz'
+make v4-verify PYTHON=.venv/bin/python
+make v4-package
 ```
 
-## Final Checks
+Then check the compiled files:
 
 ```bash
-.venv/bin/python -m pytest -q
-cd paper_versions/v2 && tectonic --keep-logs main_v2.tex
-cd paper_versions/v2 && tectonic --keep-logs main_v2_blind.tex
-cd paper_versions/v2 && pdftotext main_v2.pdf /tmp/main_v2_public.txt
-cd paper_versions/v2 && pdftotext main_v2_blind.pdf /tmp/main_v2_blind.txt
+pdftotext paper_versions/v4/main_v4_opre.pdf /tmp/main_v4_public.txt
+pdftotext paper_versions/v4/main_v4_opre_blind.pdf /tmp/main_v4_blind.txt
+rg -ni "TODO|PLACEHOLDER|Version 3|main_v3|results/v3" /tmp/main_v4_public.txt
+rg -ni "\\b(Eric|Shao|ershao)\\b|ETH Zürich|github.com/eric939|robust_mckp" /tmp/main_v4_blind.txt
+rg -ni "undefined references|undefined citation|multiply defined|missing file" \
+  paper_versions/v4/main_v4_*.log
 ```
 
-Check for stale manuscript strings:
+All three searches should return no actionable hit. Bibliographic references
+to a prior working paper, if retained, must follow the target journal's
+double-blind self-citation policy.
 
-```bash
-grep -ni "Section 9 for extensions\|Sections 4 and 5\|earlier repository drafts\|full-theta\|reduced-theta\|theta-enumerated\|theta enumeration\|nodes/thetas\|TODO\|PLACEHOLDER" /tmp/main_v2_public.txt || true
-grep -ni "undefined references\|undefined citation\|multiply defined\|missing file\|rerun to get cross-references" paper_versions/v2/main_v2.log paper_versions/v2/main_v2_blind.log || true
-```
+## Version-disclosure rule
 
-Strict blind identity check:
+The cover letter should state that v4 is a focused successor to v3: it removes
+the predecessor's broad pricing and rounding claims and centers on the
+simultaneous group-envelope bound. It adds a formal dominance theorem and a
+scoped exact-integration audit without reviving the predecessor's universal
+exact-solver claims. If v3 was public, submitted, or posted as a preprint,
+disclose it and provide a concise change map. Do not imply that the classical
+Bertsimas–Sim threshold reduction or fixed-MCKP LP geometry is new.
 
-```bash
-python3 - <<'PY'
-from pathlib import Path
-import re
-text = Path("/tmp/main_v2_blind.txt").read_text(errors="ignore")
-patterns = [
-    r"\bEric\b", r"\bShao\b", r"ershao", r"ETH Zürich", r"ETH Zurich",
-    r"github\.com/eric939", r"robust_mckp", r"2603\.18653",
-    r"Kunoth", r"Mollet", r"Hannoversche", r"University of Cologne",
-    r"Department of Mathematics, ETH",
-]
-for pattern in patterns:
-    if re.search(pattern, text, flags=re.I):
-        print("HIT", pattern)
-PY
-```
+## Data and claim policy
 
-## Data Policy
-
-No raw transaction data are redistributed. The semi-synthetic application stores
-generated calibration records and result summaries only. Gurobi and CPLEX were
-unavailable for the reported open-solver benchmark environment; SCIP and HiGHS
-are used where available.
+The public UCI panel is post-confirmatory and semi-synthetic. Its calibration
+uses a nonrandom 200,000-record prefix to set coefficient scales; it does not
+estimate causal demand or validate commercial pricing outcomes. Runtime claims
+are tied to the released single-threaded environment and comparator
+implementation. The principal theoretical claim is simultaneous evaluation and
+valid certification of the fixed-threshold LP family together with formal
+dominance over the group-clique interval LP. The exact integration validates
+global gap accounting but does not support universal integer-solver
+superiority.

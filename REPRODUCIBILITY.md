@@ -1,11 +1,8 @@
 # Reproducibility Guide
 
-This repository tracks solver and experiment code. Generated result files,
-figures, tables, manuscript builds, and submission packages are intentionally
-kept in local artifact directories so a clone starts from code and regenerates
-outputs locally. Submission-package details live in `SUBMISSION.md`;
-scientific guardrails and latest validation status live in
-`REVISION_HISTORY.md`.
+**Canonical paper and evidence:** v4, July 2026. The manuscript source is
+`paper_versions/v4/`; the released result directory is
+`results/v4_publication_20260720_final/`.
 
 ## Environment
 
@@ -16,128 +13,121 @@ python3 -m pip install -U pip
 python3 -m pip install -e ".[experiments,validation,dev]"
 ```
 
-Optional baselines use PySCIPOpt/SCIP, HiGHS/SciPy, Gurobi, and CPLEX when
-available. The core solver and smoke checks do not require commercial solvers.
+The confirmatory campaign used Python 3.14.2, NumPy 2.4.4, SciPy 1.17.1 with
+HiGHS 1.14.0, and one Apple M4 thread. Phase-specific machine and dependency
+records are released as `environment_*.json`. The solver methods in the main
+comparison both use the same SciPy/HiGHS fixed-threshold LP routine.
 
-## Bounded Verification
-
-```bash
-.venv/bin/python -m pytest -q
-.venv/bin/python -m pytest tests/test_parametric_theta_sweep.py tests/test_segment_local_budgets.py -q
-.venv/bin/python scripts/run_clean_repro_check.py --quick
-```
-
-The bounded check verifies imports and tests, py-compiles the experiment
-scripts, runs a small publication benchmark, creates synthetic Path C
-calibration data, and runs a small semi-synthetic pricing experiment. Outputs
-are written under `results/clean_repro_check/`.
-
-For a clean-copy check:
+## Verify the released artifact
 
 ```bash
-.venv/bin/python scripts/run_true_clean_room_check.py --work-dir /tmp/robust_mckp_clean_check --quick
+make v4-verify PYTHON=.venv/bin/python
 ```
 
-This copies the repository to a temporary directory, installs it in a fresh
-virtual environment, and runs the same bounded checks there.
+This bounded check:
 
-## Experiment Entry Points
+1. runs the complete test suite;
+2. verifies SHA-256 hashes for every released CSV/JSON and the exact source
+   files used to generate the paper evidence;
+3. requires every predeclared validation, kernel, primary, and robustness gate
+   to be true; and
+4. regenerates all numerical TeX macros and tables in a temporary directory
+   and byte-compares them with the checked-in manuscript inputs.
 
-## Parametric θ-sweep benchmark
+The vector figure is regenerated but is not byte-compared because PDF metadata
+can vary across Matplotlib versions. Its plotted values come from the same
+hash-verified CSVs.
 
-The sweep is exact because it evaluates the same full original breakpoint set
-as independent enumeration and validates or rebuilds hulls when necessary.
+## Frozen experimental design
 
-Smoke run:
+The protocol is serialized in `results/v4_publication_20260720_final/protocol.json`.
+Its SHA-256 is recorded before each phase. The statistical unit is an instance;
+timing repetitions estimate an instance runtime and are not treated as
+independent observations. Method order alternates within paired blocks, all
+reported timing is end to end, and thread counts are fixed to one.
+
+The released campaign contains:
+
+- 40 irregular algebraic and complete-threshold validation cases;
+- a 48-instance kernel ablation over four sizes and four families;
+- a 24-instance common-trace comparison on identical dyadic intervals;
+- 60 primary instances: four families, three sizes, and five seeds, with five
+  balanced repetitions per method;
+- 36 robustness instances covering `Gamma=1`, twelve-option menus, and
+  `Gamma=floor(0.2n)`;
+- eight descriptive stress instances through 5,760 groups; and
+- nine post-confirmatory semi-synthetic pricing portfolios calibrated from
+  public UCI Online Retail aggregates.
+
+A separate exact-integration audit contains twelve 30-group instances across
+four families and three seeds, with two balanced repetitions and a five-second
+limit. It compares envelope interval search, clique interval search, complete
+threshold enumeration, and compact SCIP. This audit validates exact objective
+agreement and gap accounting; it is not part of the preregistered LP-certificate
+timing claim.
+
+Primary geometric-mean confidence intervals use 10,000 bootstrap draws,
+resampling seeds within family-by-size cells. The exact one-sided sign test and
+all headline summaries use one observation per instance.
+
+## Full end-to-end rerun
 
 ```bash
-.venv/bin/python scripts/run_parametric_sweep_ablation.py --smoke --output-dir results/parametric_sweep_ablation_smoke --validate
-.venv/bin/python scripts/summarize_parametric_sweep_ablation.py --input-dir results/parametric_sweep_ablation_smoke --tables-dir results/parametric_sweep_summaries/tables --label smoke
-.venv/bin/python scripts/run_parametric_sweep_benchmarks.py --smoke --output-dir results/parametric_sweep_smoke --validate-sweep-sampled
-.venv/bin/python scripts/summarize_parametric_sweep_benchmarks.py --input-dir results/parametric_sweep_smoke --tables-dir results/parametric_sweep_summaries/tables --label smoke
-.venv/bin/python scripts/run_segment_local_budget_experiments.py --smoke --output-dir results/segment_local_budget_smoke
-.venv/bin/python scripts/summarize_segment_local_budget_experiments.py --input-dir results/segment_local_budget_smoke --tables-dir results/parametric_sweep_summaries/tables --label smoke
-.venv/bin/python scripts/build_parametric_sweep_claim_audit.py
+make v4-reproduce PYTHON=.venv/bin/python
 ```
 
-Normal-run template:
+This command runs tests, executes every frozen phase in order, and generates a
+fresh set of paper macros, tables, and figures under
+`tmp/v4_reproduction_paper/`. Fresh timing results are written to
+`results/v4_reproduction/`; released results are never overwritten. Override
+these locations with `V4_RUN_RESULTS=...` and `V4_RUN_PAPER=...`.
+
+The application phase uses the released UCI-derived aggregates in
+`results/v4_publication_20260720_final/uci_calibration/`. Raw UCI transactions
+are not redistributed. To rebuild those aggregates from the source data,
+download the UCI Online Retail CSV, place it in a local cache directory, and
+run:
 
 ```bash
-.venv/bin/python scripts/run_parametric_sweep_ablation.py \
-  --paper-lite \
-  --families many_theta,tight_capacity,non_tight_control \
-  --output-dir results/parametric_sweep_ablation_lite \
-  --validate-sampled \
-  --resume
-.venv/bin/python scripts/summarize_parametric_sweep_ablation.py \
-  --input-dir results/parametric_sweep_ablation_lite \
-  --tables-dir results/parametric_sweep_summaries/tables \
-  --label lite
-.venv/bin/python scripts/run_parametric_sweep_benchmarks.py \
-  --paper-lite \
-  --families many_theta,tight_capacity,non_tight_control \
-  --methods hullround,exact_enum_current,exact_sweep_new,scipy_highs,scip,gurobi,cplex \
-  --output-dir results/parametric_sweep_lite \
-  --time-limit 45 \
-  --node-limit 300000 \
-  --validate-sweep-sampled \
-  --resume
-.venv/bin/python scripts/summarize_parametric_sweep_benchmarks.py \
-  --input-dir results/parametric_sweep_lite \
-  --tables-dir results/parametric_sweep_summaries/tables \
-  --label lite
+.venv/bin/python scripts/run_pathC_data_calibration.py \
+  --source uci_online_retail \
+  --max-rows 200000 \
+  --cache-dir data_cache/pathC_uci \
+  --output-dir results/v4_reproduction/uci_calibration
 ```
 
-Outputs are CSV files under the selected `results/` directory and generated
-LaTeX tables under `results/parametric_sweep_summaries/tables/`. Optional
-figures, if added, should be written under
-`results/parametric_sweep_summaries/figures/`.
+The calibration script records whether public or fallback synthetic data were
+used. A reproduction of the reported external panel must show
+`public_data_used: True` in its source report. The public data are used only to
+calibrate aggregate price, volume, segment, and uncertainty scales; elasticity
+curves and generated choice menus remain modeled. The reported calibration uses
+the first 200,000 source rows rather than a random or full-data sample; this is
+why the panel is treated as a post-confirmatory scale check.
 
-The ablation runner compares independent fixed-θ rebuilding,
-incremental-sweep rebuilding, and incremental-sweep safe reuse without full
-B&B. It supports the narrower construction-cost claim only. Solver-level
-speedups require the full benchmark summary and matched certified rows.
+## Regenerate evidence or compile the paper
 
-Segment-local Gamma budgets are smoke-validated with brute-force parity and a
-product-size guard. Larger segment-local products can grow quickly; oversized
-rows should be reported as guarded or partial rather than approximated.
-
-SCIP, HiGHS/SciPy, Gurobi, and CPLEX rows are included only when the relevant
-package and license are available. Unavailable backends are recorded as
-`not_available` instead of failing smoke runs.
-
-Synthetic robust-MCKP smoke benchmark:
+Regenerate checked-in evidence from the released records:
 
 ```bash
-.venv/bin/python scripts/run_publication_benchmarks.py --smoke --output-dir results/publication_benchmarks_smoke
+make v4-evidence PYTHON=.venv/bin/python
 ```
 
-Publishable synthetic/retail experiment bundle:
+Compile the public/blind main paper, electronic companion, and executive
+summary (requires `tectonic`):
 
 ```bash
-.venv/bin/python scripts/run_publishable_experiments.py --smoke
-.venv/bin/python scripts/run_solver_benchmarks.py --smoke
-.venv/bin/python scripts/plot_publishable_results.py
+make v4-paper
 ```
 
-The HullRound gap CSVs include the additive one-item certificate
-`delta_v_max_theta`, the realized round-down loss `l_rd`, the certificate ratio
-`l_rd_over_delta`, and the scale-normalized diagnostic
-`delta_v_max_over_lp_ub`.
+The main source is `paper_versions/v4/main_v4.tex`; the small wrapper files
+select the public/blind and main/companion variants.
 
-Semi-synthetic pricing application:
+## Interpretation limits
 
-```bash
-.venv/bin/python scripts/run_pathC_data_calibration.py --source synthetic_only --output-dir results/pathC/calibration
-.venv/bin/python scripts/run_pathC_semisynthetic_application.py --calibration-dir results/pathC/calibration --output-dir results/pathC/semisynthetic_application_smoke --seeds 1 --n 60 --m 8 --stress-scenarios 200 --gamma-grid 0,sqrt,n --run-exact-small-subset
-```
-
-Diagnostics:
-
-```bash
-.venv/bin/python scripts/run_branching_strategy_diagnostics.py
-.venv/bin/python scripts/run_tight_capacity_diagnostics.py
-```
-
-Most scripts accept `--output-dir` or related path options. Use those options to
-keep new outputs separate from previous local runs.
+The released evidence supports algebraic correctness, valid LP-family
+certification, formal objective-bound dominance over the bounded-threshold
+group-clique LP, and a paired certificate-time advantage over its sparse
+implementation on the tested designs. The separate exact audit does not
+establish universal solver dominance or integer-solver superiority. The UCI
+panel is application-derived and semi-synthetic, not a causal demand estimate
+or transaction-level pricing validation.
