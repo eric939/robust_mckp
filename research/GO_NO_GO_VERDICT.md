@@ -105,7 +105,8 @@ The strongest observed object is the full-threshold disjunctive relaxation. Unfo
 
 ## Only defensible next research gate
 
-Do not rewrite v3 yet. Continue only with the following theory-first gate:
+Do not alter or reframe the separate v3 manuscript. Continue the independent
+v4 research line only through the following theory-first gate:
 
 1. Compare the disjunctive relaxation formally and computationally with the strongest generic formulations of Atamtürk, Joung--Park, and Büsing--Gersing--Koster.
 2. Enumerate and classify the non-conflict facets appearing when exhaustive group conflicts fail to reach the small-instance integer hull.
@@ -113,7 +114,9 @@ Do not rewrite v3 yet. Continue only with the following theory-first gate:
 4. Prove separation or give a rigorous complexity result.
 5. Implement the result as a SCIP separator or formulation and require a material root-gap and runtime improvement over native SCIP and the generic robust methods.
 
-If steps 2--4 do not produce a theorem, stop the top-journal algorithmic project. The current v3 remains a careful reproducibility/certification paper, but the experiments do not justify repositioning it as a state-of-the-art exact-method paper.
+If steps 2--4 do not produce a theorem, stop this top-journal algorithmic
+project. These experiments neither evaluate nor reposition the separate v3
+paper.
 
 ## Limitations
 

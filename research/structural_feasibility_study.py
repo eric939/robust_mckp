@@ -61,7 +61,7 @@ from research.novelty_go_no_go import (  # noqa: E402
     minimal_group_conflicts,
     shrink_group_conflict,
 )
-from scripts.run_v3_experiments import build_hard_instance  # noqa: E402
+from research.benchmark_instances import build_benchmark_instance  # noqa: E402
 
 
 TOL = 1e-8
@@ -598,7 +598,7 @@ def run_exact_cut_benchmark(
 ) -> dict:
     rows: list[dict] = []
     for family, n, seed in itertools.product(families, sizes, seeds):
-        instance = build_hard_instance(family, n, 6, _gamma_for(n, "sqrt"), seed)
+        instance = build_benchmark_instance(family, n, 6, _gamma_for(n, "sqrt"), seed)
         direction = np.array(
             [option.value for group in instance.items for option in group], dtype=float
         )
@@ -775,7 +775,7 @@ def run_scaling_study(
 ) -> dict:
     rows: list[dict] = []
     for family, n, seed in itertools.product(families, sizes, seeds):
-        instance = build_hard_instance(family, n, 6, _gamma_for(n, "sqrt"), seed)
+        instance = build_benchmark_instance(family, n, 6, _gamma_for(n, "sqrt"), seed)
         oracle_start = time.perf_counter()
         oracle = ThetaIntervalOracle(instance)
         root = oracle.bound(0, len(oracle.thetas) - 1)
@@ -1144,7 +1144,7 @@ def run_strong_bound_comparison(
 ) -> dict:
     rows: list[dict] = []
     for family, n, seed in itertools.product(families, sizes, seeds):
-        instance = build_hard_instance(family, n, 6, _gamma_for(n, "sqrt"), seed)
+        instance = build_benchmark_instance(family, n, 6, _gamma_for(n, "sqrt"), seed)
         thetas = build_full_theta_candidates(instance)
         generic_bound, generic_seconds = bounded_theta_strong_lp(
             instance, min(thetas), max(thetas)
@@ -1214,7 +1214,7 @@ def run_clique_interval_comparison(
 
     rows: list[dict] = []
     for family, n, seed in itertools.product(families, sizes, seeds):
-        instance = build_hard_instance(family, n, 6, _gamma_for(n, "sqrt"), seed)
+        instance = build_benchmark_instance(family, n, 6, _gamma_for(n, "sqrt"), seed)
         scan_value, scan_seconds, _ = full_theta_lp_scan(instance)
 
         oracle = ThetaIntervalOracle(instance)

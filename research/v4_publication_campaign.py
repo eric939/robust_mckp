@@ -49,7 +49,7 @@ from research.structural_feasibility_study import (  # noqa: E402
     bounded_theta_clique_lp,
     FixedThetaLPOracle,
 )
-from scripts.run_v3_experiments import build_hard_instance  # noqa: E402
+from research.benchmark_instances import build_benchmark_instance  # noqa: E402
 from scripts.run_pathC_semisynthetic_application import (  # noqa: E402
     build_portfolio,
     read_segment_calibration,
@@ -569,7 +569,7 @@ def run_kernel(output_dir: Path) -> dict:
     raw: list[dict] = []
     multipliers = [float(value) for value in spec["lambda_multipliers"]]
     for family, n, seed in itertools.product(spec["families"], spec["sizes"], spec["seeds"]):
-        instance = build_hard_instance(
+        instance = build_benchmark_instance(
             str(family), int(n), int(spec["menu_size"]), _gamma(int(n), str(spec["gamma_rule"])), int(seed)
         )
         dense_times, dense_results, compressed_times, compressed_results = [], [], [], []
@@ -713,7 +713,7 @@ def run_common_trace(output_dir: Path) -> dict:
     for family, n, seed in itertools.product(
         spec["families"], spec["sizes"], spec["seeds"]
     ):
-        instance = build_hard_instance(
+        instance = build_benchmark_instance(
             str(family),
             int(n),
             int(spec["menu_size"]),
@@ -927,7 +927,7 @@ def run_primary(output_dir: Path) -> dict:
     rows: list[dict] = []
     raw: list[dict] = []
     for family, n, seed in itertools.product(spec["families"], spec["sizes"], spec["seeds"]):
-        instance = build_hard_instance(
+        instance = build_benchmark_instance(
             str(family), int(n), int(spec["menu_size"]), _gamma(int(n), str(spec["gamma_rule"])), int(seed)
         )
         row, raw_rows = _adaptive_instance_row(
@@ -960,7 +960,7 @@ def run_robustness(output_dir: Path) -> dict:
     raw: list[dict] = []
     n = int(spec["n"])
     for config, family, seed in itertools.product(spec["configurations"], spec["families"], spec["seeds"]):
-        instance = build_hard_instance(
+        instance = build_benchmark_instance(
             str(family), n, int(config["menu_size"]), _gamma(n, str(config["gamma_rule"])), int(seed)
         )
         row, raw_rows = _adaptive_instance_row(
@@ -1008,7 +1008,7 @@ def run_stress(output_dir: Path) -> dict:
     rows: list[dict] = []
     raw: list[dict] = []
     for family, n, seed in itertools.product(spec["families"], spec["sizes"], spec["seeds"]):
-        instance = build_hard_instance(
+        instance = build_benchmark_instance(
             str(family), int(n), int(spec["menu_size"]), _gamma(int(n), str(spec["gamma_rule"])), int(seed)
         )
         row, raw_rows = _adaptive_instance_row(

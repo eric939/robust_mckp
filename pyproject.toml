@@ -5,14 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "robust-mckp"
 version = "0.1.0"
-description = "Certifying decomposition algorithms for finite-menu Gamma-robust MCKP and discrete pricing."
+description = "Simultaneous Lagrangian bounds and certifying algorithms for Gamma-robust MCKP."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = {file = "LICENSE"}
 authors = [
   {name = "Eric Shao", email = "ershao@student.ethz.ch"}
 ]
-keywords = ["robust", "knapsack", "pricing", "optimization", "uncertainty"]
+keywords = ["robust optimization", "multiple-choice knapsack", "Lagrangian bounds", "certification"]
 classifiers = [
   "Intended Audience :: Science/Research",
   "Programming Language :: Python :: 3",

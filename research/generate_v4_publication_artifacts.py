@@ -61,6 +61,7 @@ def source_snapshot() -> list[Path]:
     paths.update((ROOT / "tests").glob("*.py"))
     for relative in (
         "research/bound_dominance.py",
+        "research/benchmark_instances.py",
         "research/compressed_interval_oracle.py",
         "research/exact_integration_campaign.py",
         "research/generate_v4_publication_artifacts.py",
@@ -72,7 +73,6 @@ def source_snapshot() -> list[Path]:
         "scripts/build_v4_anonymous_supplement.py",
         "scripts/run_pathC_data_calibration.py",
         "scripts/run_pathC_semisynthetic_application.py",
-        "scripts/run_v3_experiments.py",
         "scripts/run_v4_publication_campaign.py",
         "scripts/verify_v4_release.py",
     ):

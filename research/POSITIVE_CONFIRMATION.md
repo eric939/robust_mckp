@@ -197,7 +197,8 @@ secondary computational sections rather than the novelty claim.
 - Implementation: `research/compressed_interval_oracle.py`
 - Confirmatory runner: `research/positive_confirmation_study.py`
 - Tests: `tests/test_compressed_interval_oracle.py`
-- Final primary outputs: `results/positive_confirmation_final_20260719/`
-- First confirmatory outputs: `results/positive_confirmation_20260719/`
-- Stress outputs: `results/positive_confirmation_stress_20260719/`
-- Final regression result: 112 tests passed.
+- The historical exploratory output directories are intentionally omitted from
+  the clean v4 release; this verdict retains their durable findings. The
+  protocol-fixed evidence used by the paper is in
+  `results/v4_publication_20260720_final/`.
+- Historical regression result at this gate: 112 tests passed.

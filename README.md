@@ -17,6 +17,8 @@ universally superior integer solver.
 ## Repository map
 
 - `research/compressed_interval_oracle.py`: proposed group-envelope oracle.
+- `research/benchmark_instances.py`: neutral, deterministic v4 benchmark
+  generator; its frozen seed namespace is implementation metadata only.
 - `research/bound_dominance.py`: exact epigraph LP used to validate the formal
   dominance theorem.
 - `research/integrated_exact_solver.py`: exact integer threshold-interval
@@ -35,6 +37,10 @@ universally superior integer solver.
   calibration aggregates.
 - `src/robust_mckp/`: shared solver infrastructure used by the experiments.
 
+The `v3` and `v4` branches are independent publication lines. The `v4` branch
+contains only the shared core and v4-specific research infrastructure; the
+v3-specific campaign, extensions, and manuscript remain on the `v3` branch.
+
 Submission-ready manuscript PDFs are checked in under `output/pdf/`; their
 source files and build instructions are listed in `SUBMISSION.md`.
 
@@ -52,6 +58,15 @@ make v4-verify PYTHON=.venv/bin/python
 the manuscript tables/macros/figure in a temporary directory, and compares the
 generated text artifacts with the checked-in versions. It does not rerun the
 long timing campaign.
+
+Preview or remove ignored build debris, noncanonical result runs, and local
+v2/v3 working-tree copies without touching tracked v4 evidence, Git branches,
+the virtual environment, or the raw-data cache:
+
+```bash
+make clean-preview PYTHON=.venv/bin/python
+make clean PYTHON=.venv/bin/python
+```
 
 To rerun the complete frozen campaign and rebuild its paper artifacts:
 

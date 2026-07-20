@@ -34,7 +34,7 @@ from research.structural_feasibility_study import (  # noqa: E402
     adaptive_interval_bound,
     bounded_theta_clique_lp,
 )
-from scripts.run_v3_experiments import build_hard_instance  # noqa: E402
+from research.benchmark_instances import build_benchmark_instance  # noqa: E402
 
 
 FAMILIES = ("dense_frontier", "correlated_risk", "near_tie", "many_breakpoints")
@@ -110,7 +110,7 @@ def run_validation(output_dir: Path, seeds: Sequence[int]) -> dict:
     max_error = 0.0
     min_validity_slack = float("inf")
     for family, seed in itertools.product(FAMILIES, seeds):
-        instance = build_hard_instance(family, 90, 6, _gamma_for(90, "sqrt"), seed)
+        instance = build_benchmark_instance(family, 90, 6, _gamma_for(90, "sqrt"), seed)
         dense = ThetaIntervalOracle(instance)
         compressed = CompressedThetaIntervalOracle(instance)
         lambda_values = [0.0, 0.01, 0.1, 0.5, 1.0, 2.0, 10.0, 100.0]
@@ -172,7 +172,7 @@ def run_scaling(
 ) -> dict:
     rows: list[dict] = []
     for family, n, seed in itertools.product(FAMILIES, sizes, seeds):
-        instance = build_hard_instance(family, n, 6, _gamma_for(n, "sqrt"), seed)
+        instance = build_benchmark_instance(family, n, 6, _gamma_for(n, "sqrt"), seed)
 
         # Alternate the first method by seed to reduce systematic thermal/order bias.
         if seed % 2:

@@ -5,7 +5,7 @@ V4_RUN_RESULTS ?= results/v4_reproduction
 V4_RUN_PAPER ?= tmp/v4_reproduction_paper
 V4_CALIBRATION ?= $(V4_RELEASE_RESULTS)/uci_calibration
 
-.PHONY: install-dev test check clean-check v3-smoke v3-evidence \
+.PHONY: install-dev test check clean-preview \
 	v4-verify v4-evidence v4-exact-audit v4-reproduce v4-paper v4-package \
 	v4-anonymous-package clean
 
@@ -16,22 +16,7 @@ install-dev:
 test:
 	$(PYTHON) -m pytest -q
 
-check:
-	$(PYTHON) -m pytest -q
-	$(PYTHON) scripts/run_clean_repro_check.py --quick
-
-clean-check:
-	$(PYTHON) scripts/run_clean_repro_check.py --quick
-
-v3-smoke:
-	$(PYTHON) scripts/run_clean_repro_check.py --quick
-
-v3-evidence:
-	MPLCONFIGDIR="$$HOME/.cache/matplotlib" $(PYTHON) scripts/build_v3_experiment_evidence.py \
-		--input-dir results/v3_experiments_20260718 \
-		--table-dir paper_versions/v3/tables/v3_experiments \
-		--figure-dir paper_versions/v3/figures/v3_experiments \
-		--macro-file paper_versions/v3/auto/v3_experiment_numbers.tex
+check: v4-verify
 
 v4-verify: test
 	MPLCONFIGDIR="$$HOME/.cache/matplotlib" $(PYTHON) scripts/verify_v4_release.py \
@@ -85,5 +70,8 @@ v4-anonymous-package: v4-verify v4-paper
 		--paper paper_versions/v4 \
 		--output output/anonymous/robust_mckp_v4_anonymous_supplement.zip
 
+clean-preview:
+	$(PYTHON) scripts/clean_workspace.py
+
 clean:
-	rm -rf results paper .pytest_cache
+	$(PYTHON) scripts/clean_workspace.py --apply

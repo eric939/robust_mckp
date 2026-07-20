@@ -1,12 +1,51 @@
 from __future__ import annotations
 
+import hashlib
+
 import numpy as np
 import pytest
 
 from robust_mckp import Option, PricingInstance
+from research.benchmark_instances import build_benchmark_instance
 from research.compressed_interval_oracle import CompressedThetaIntervalOracle
 from research.novelty_go_no_go import ThetaIntervalOracle, build_small_instance
-from scripts.run_v3_experiments import build_hard_instance
+
+
+@pytest.mark.parametrize(
+    ("family", "expected_digest"),
+    [
+        (
+            "dense_frontier",
+            "31e88519622239964697b3333f8fef598791550f6f5c0ca238ccb7fcf358cede",
+        ),
+        (
+            "correlated_risk",
+            "7bd13af43481ec1ac01b46d21b460714dea393c931067fbbde777c50098b3492",
+        ),
+        (
+            "near_tie",
+            "0f478f17e09b2fd937b040bd48d1b6a2ee1a5c5d42f74ceb4d399e76f37d62c4",
+        ),
+        (
+            "many_breakpoints",
+            "33222d8dbc34c63af47e26705b4a69299efb5714827970b6612192ab661f2d35",
+        ),
+    ],
+)
+def test_benchmark_generator_preserves_released_coefficients(
+    family: str,
+    expected_digest: str,
+) -> None:
+    instance = build_benchmark_instance(family, n=30, m=6, gamma=5, seed=3)
+    coefficients = np.asarray(
+        [
+            (option.value, option.margin, option.uncertainty)
+            for group in instance.items
+            for option in group
+        ],
+        dtype=np.float64,
+    )
+    assert hashlib.sha256(coefficients.tobytes()).hexdigest() == expected_digest
 
 
 @pytest.mark.parametrize("seed", [0, 1, 2, 17])
@@ -28,7 +67,7 @@ def test_compressed_oracle_matches_dense_lagrangian_values(seed: int) -> None:
     "family", ["dense_frontier", "correlated_risk", "near_tie", "many_breakpoints"]
 )
 def test_compressed_oracle_matches_dense_bound(family: str) -> None:
-    instance = build_hard_instance(family, n=30, m=6, gamma=5, seed=3)
+    instance = build_benchmark_instance(family, n=30, m=6, gamma=5, seed=3)
     dense = ThetaIntervalOracle(instance)
     compressed = CompressedThetaIntervalOracle(instance)
     intervals = [

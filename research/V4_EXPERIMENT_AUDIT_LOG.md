@@ -6,7 +6,15 @@ Date: 20 July 2026. The final evidence directory is `results/v4_publication_2026
 
 Before the final confirmatory phases, `v4_publication_campaign.py protocol` wrote the complete design and gates to `protocol.json`. Its SHA-256 digest is `20fd417c6765573b98c88b648abb8af74775e5d0f7d0796aa8a0097853f211ce`. Instance families, sizes, seeds, repetitions, timing order, single-thread rule, tolerance, statistical unit, family--size-cell bootstrap, and go/no-go thresholds were not changed during the final run.
 
-An earlier sparse-comparator run is preserved in `results/v4_publication_20260720`. It produced 60/60 timing wins and a 95% CI above one but failed the predeclared 2x geometric-mean gate (1.79x observed). Profiling then identified redundant reconstruction in the shared fixed-threshold LP routine and repeated evaluation of the compressed oracle's fixed multiplier grid. Those algorithm-preserving inefficiencies were removed, new parity tests were added, and a new protocol was serialized before the complete final rerun. The failed run is not used in manuscript tables.
+An earlier sparse-comparator run produced 60/60 timing wins and a 95% CI above
+one but failed the predeclared 2x geometric-mean gate (1.79x observed).
+Profiling then identified redundant reconstruction in the shared
+fixed-threshold LP routine and repeated evaluation of the compressed oracle's
+fixed multiplier grid. Those algorithm-preserving inefficiencies were removed,
+new parity tests were added, and a new protocol was serialized before the
+complete final rerun. The failed run is documented here but its scratch output
+is intentionally omitted from the clean release and is not used in manuscript
+tables.
 
 ## Tests before final runs
 

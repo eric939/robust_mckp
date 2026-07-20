@@ -4,12 +4,13 @@ Date: 19 July 2026
 
 ## Verdict
 
-**NO-GO for rewriting v3 as a new top-journal exact-method paper.** The current
-candidate contributions do not clear novelty and competitiveness simultaneously.
-This is now a negative result supported by exact polyhedral enumeration, exact
-separation, solver-controlled end-to-end tests, scaling to 720 groups, and a
-direct implementation of the strongest transferable bounded-threshold clique
-baseline from Büsing, Gersing, and Koster (2023).
+**NO-GO for the initial exact-method angle explored for the independent v4
+project.** The candidate contributions tested in this campaign do not clear
+novelty and competitiveness simultaneously. This is a negative result supported
+by exact polyhedral enumeration, exact separation, solver-controlled end-to-end
+tests, scaling to 720 groups, and a direct implementation of the strongest
+transferable bounded-threshold clique baseline from Büsing, Gersing, and Koster
+(2023). It is not an assessment or proposed rewrite of the separate v3 paper.
 
 The unchanged robust-MCKP problem can still support a publishable contribution,
 but only conditionally: a new theorem and algorithm must exploit the GUB/menu
@@ -157,17 +158,15 @@ space. At that point the rational choices are an application/empirical paper wit
 new data and decisions, a reproducibility/software paper, or a different robust
 uncertainty model whose structure has not already been covered.
 
-## Reproducibility artifacts
+## Reproducibility record
 
 - `research/novelty_go_no_go.py`: first campaign.
 - `research/structural_feasibility_study.py`: exact facets, exact separator,
   strong formulations, scaling, and clique comparison.
 - `tests/test_novelty_go_no_go.py` and
   `tests/test_structural_feasibility_study.py`: validity/regression tests.
-- `results/novelty_go_no_go_20260719/`: first campaign data.
-- `results/structural_feasibility_20260719/`: second campaign data.
-- `results/structural_feasibility_n720/`: n=720 scaling run.
-- `results/structural_clique_allfamilies_20260719/`: four-family prior-art
-  comparison.
+- The historical scratch result directories are intentionally omitted from the
+  clean v4 release. The durable design and numerical findings are retained in
+  this verdict; the executable campaign sources and regression tests remain.
 
 Final regression command: `PYTHONPATH=. .venv/bin/pytest -q` (93 tests passed).
