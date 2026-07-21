@@ -19,6 +19,7 @@ repository.
 - `REPRODUCIBILITY.md`: environment, tests, smoke checks, and experiment entry points.
 - `SUBMISSION.md`: public/blind manuscript and artifact-package checklist.
 - `REVISION_HISTORY.md`: durable scientific guardrails and latest validation status.
+- `manuscript/`: recovered complete 39-page public V3 paper and provenance.
 - `src/robust_mckp/`: solver package, including HullRound and exact
   θ-enumerated branch-and-bound.
 - `src/robust_mckp/parametric_sweep.py`: exact full-breakpoint parametric
@@ -40,6 +41,7 @@ repository.
 
 Generated outputs are written under `results/`, `paper_versions/`, `output/`,
 `submission_ready/`, or other local artifact directories and are ignored by git.
+The single canonical public PDF under `manuscript/` is deliberately retained.
 
 ## Main Algorithmic Contribution
 

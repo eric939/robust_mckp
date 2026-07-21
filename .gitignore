@@ -56,3 +56,10 @@ scripts/create_final_*bundle.py
 scripts/create_submission_gate_packages.py
 scripts/plot_journal_composite_figures.py
 scripts/* 2.py
+
+# Recovered canonical V3 public manuscript. Generated working artifacts remain
+# ignored; this exact PDF and provenance note are the only manuscript files
+# retained on the legacy V3 branch.
+!manuscript/
+!manuscript/README.md
+!manuscript/robust_mckp_v3_full.pdf
