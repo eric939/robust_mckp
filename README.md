@@ -48,6 +48,9 @@ v3-specific campaign, extensions, and manuscript remain on the `v3` branch.
 
 Submission-ready manuscript PDFs are checked in under `output/pdf/`; their
 source files and build instructions are listed in `SUBMISSION.md`.
+The recovered complete V3 paper is `output/pdf/robust_mckp_v3_full.pdf`; its
+original byte stream and recovery provenance are preserved under
+`legacy/v3/manuscript/original/`.
 
 ## Install and verify
 

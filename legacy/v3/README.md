@@ -11,13 +11,22 @@ and submission records.
 
 The same commit is retained by branch `v3` and annotated tag
 `legacy-v3-code-20260522`. See `manuscript/RECOVERY_STATUS.md` for the precise
-status of the manuscript files that were stored only in an ignored local
-directory.
+recovery provenance of the manuscript files that were stored only in an
+ignored local directory.
+
+`manuscript/original/robust_mckp_v3_full_20260522.pdf` is the recovered
+complete public V3 paper. It is 39 letter-size pages and carries the final V3
+title, author identity, embedded creation time, figures, tables, appendices,
+and bibliography. Its embedded creation time is 44 seconds after the final V3
+code commit, and its SHA-256 digest is recorded in `legacy/MANIFEST.sha256`.
+This is the canonical V3 manuscript artifact.
 
 The `manuscript/reconstructed/` directory contains a seven-page, fully
 typeset reconstruction of the V3 scientific record. Its title page and PDF
 metadata state that it was reconstructed in July 2026 from the exact V2/arXiv
-source and final V3 code and documentation. A compatible Tectonic build is:
+source and final V3 code and documentation. It predates recovery of the
+complete PDF and is retained only as a provenance-labeled recovery artifact.
+A compatible Tectonic build is:
 
 ```bash
 tectonic -X compile robust_mckp_v3_legacy_reconstruction.tex

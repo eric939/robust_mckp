@@ -97,9 +97,13 @@ output/pdf/*
 !output/pdf/robust_mckp_v4_electronic_companion.pdf
 !output/pdf/robust_mckp_v4_electronic_companion_blind.pdf
 !output/pdf/robust_mckp_v4_executive_summary.pdf
+!output/pdf/robust_mckp_v3_full.pdf
 !output/pdf/robust_mckp_v3_legacy_reconstruction.pdf
 
 # Immutable legacy archives. These exceptions deliberately override the
 # repository-wide PDF ignore rule so archived papers and figures stay tracked.
 !legacy/
 !legacy/**
+
+# Finder metadata must remain ignored even after the broad legacy exception.
+**/.DS_Store

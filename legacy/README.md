@@ -9,7 +9,7 @@ must not be rewritten, regenerated in place, or removed by workspace cleanup.
 | Line | Code anchor | Preserved payload | Provenance status |
 | --- | --- | --- | --- |
 | V2 | `baddc9e30049da0ba2a59b466b87b45bd166ef65` | Complete Git code snapshot plus the exact arXiv v1 PDF and source package for arXiv:2603.18653 | Exact public March 2026 artifacts |
-| V3 | `2e2829e55243b846e5944965a839eb9b28dd5e9c` | Complete final V3 Git code snapshot plus a provenance-labeled legacy reconstruction PDF and source | Exact code; reconstruction is explicitly distinguished from the deleted original |
+| V3 | `2e2829e55243b846e5944965a839eb9b28dd5e9c` | Complete final V3 Git code snapshot plus the recovered 39-page public manuscript PDF | Exact code and exact branch-aligned May 2026 paper; later reconstruction retained separately |
 
 V2 denotes the March 2026 arXiv-era paper and code state. V3 denotes the May
 2026 certifying full-breakpoint research program preserved on the `v3` branch.
@@ -29,9 +29,12 @@ The code snapshots are protected three ways:
 source is retained beside the original source tarball for immediate inspection.
 
 The V3 manuscript working directory was ignored by Git and was removed before
-this archive was created. Its recovery status is recorded in
-`v3/manuscript/RECOVERY_STATUS.md`. The PDF under `v3/manuscript/reconstructed/`
-is visibly and textually labeled as a July 2026 reconstruction; it is not
-represented as the lost original. If an original copy is later recovered from
-Overleaf, email, or external backup, add it under `v3/manuscript/original/`
-without replacing either record, then extend the checksum manifest.
+this archive was created. On 21 July 2026, its complete 39-page public PDF was
+recovered from a surviving Apple Mail saved-attachment cache. The PDF's
+embedded creation time is 22 May 2026 at 21:47:50 CEST, 44 seconds after the
+final V3 code commit. Its title and content agree with the contemporaneous V3
+repository and Codex build records. The exact byte stream is preserved under
+`v3/manuscript/original/`; see `v3/manuscript/RECOVERY_STATUS.md` for the full
+provenance analysis. The seven-page July reconstruction remains under
+`v3/manuscript/reconstructed/` as a clearly labeled historical recovery
+artifact, not as the canonical paper.
