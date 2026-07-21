@@ -26,7 +26,13 @@ Available exact reconstruction inputs are:
    experiment drivers inside that snapshot; and
 4. the public `v3` Git branch and immutable V3 tag.
 
-No newly written manuscript is stored here because doing so would blur the
-line between an original historical artifact and a later reconstruction. An
-externally recovered original should be added under `original/`, accompanied
-by its source location, recovery date, and SHA-256 checksum.
+A provenance-labeled legacy reconstruction was created in July 2026 at
+`reconstructed/robust_mckp_v3_legacy_reconstruction.tex`, with the matching
+PDF beside it. The reconstruction states the V3 model, full-breakpoint
+decomposition, hull-rounding certificate, global-gap invariant, exact sweep,
+implementation record, and evidence limits supported by the surviving source.
+Its title page and metadata explicitly say that it is not the deleted original.
+
+An externally recovered original should still be added under `original/`,
+accompanied by its source location, recovery date, and SHA-256 checksum. It
+must not replace or be conflated with the reconstruction.

@@ -13,3 +13,15 @@ The same commit is retained by branch `v3` and annotated tag
 `legacy-v3-code-20260522`. See `manuscript/RECOVERY_STATUS.md` for the precise
 status of the manuscript files that were stored only in an ignored local
 directory.
+
+The `manuscript/reconstructed/` directory contains a seven-page, fully
+typeset reconstruction of the V3 scientific record. Its title page and PDF
+metadata state that it was reconstructed in July 2026 from the exact V2/arXiv
+source and final V3 code and documentation. A compatible Tectonic build is:
+
+```bash
+tectonic -X compile robust_mckp_v3_legacy_reconstruction.tex
+```
+
+Run that command inside `legacy/v3/manuscript/reconstructed/`. The checked-in
+PDF is the visually audited archival build.
