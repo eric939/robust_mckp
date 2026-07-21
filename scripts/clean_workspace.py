@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Preview or remove only ignored, reproducible workspace debris."""
+"""Preview or remove only ignored, reproducible workspace debris.
+
+Versioned paper and code archives are never cleanup candidates.  Canonical
+legacy payloads live under ``legacy/``; local ``paper_versions/v2`` and
+``paper_versions/v3`` directories are also preserved if restored later.
+"""
 from __future__ import annotations
 
 import argparse
@@ -15,8 +20,6 @@ TRANSIENT_DIRECTORIES = (
     ROOT / "tmp",
     ROOT / "src" / "robust_mckp.egg-info",
     ROOT / "output" / "anonymous",
-    ROOT / "paper_versions" / "v2",
-    ROOT / "paper_versions" / "v3",
     ROOT / "paper_versions" / "v4" / "build_ec",
     ROOT / "paper_versions" / "v4" / "build_ec_blind",
     ROOT / "paper_versions" / "v4" / "build_full",

@@ -3,6 +3,9 @@
 **Current-version flag (2026-07-21):** `paper_versions/v4/` is canonical.
 Version 3 is a separate manuscript and is not part of the v4 submission.
 
+Historical V2/V3 materials are preserved under `legacy/` and by immutable Git
+tags. They are provenance archives, not files for the v4 ScholarOne package.
+
 ## Journal builds
 
 The main source is `paper_versions/v4/main_v4.tex`. The wrappers select public

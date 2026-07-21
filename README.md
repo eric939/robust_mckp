@@ -35,6 +35,8 @@ universally superior integer solver.
 - `tests/test_compressed_interval_oracle.py` and
   `tests/test_v4_publication_campaign.py`: v4 algebra and protocol tests.
 - `paper_versions/v4/`: canonical manuscript source and generated inputs.
+- `legacy/`: immutable V2/V3 paper and code archives, provenance records, and
+  SHA-256 checksums; these files are never cleanup candidates.
 - `results/v4_publication_20260721_certified_final/`: released instance-level results,
   raw timing repetitions, protocol, environments, summaries, and public-data
   calibration aggregates.
@@ -62,9 +64,9 @@ the manuscript tables/macros/figure in a temporary directory, and compares the
 generated text artifacts with the checked-in versions. It does not rerun the
 long timing campaign.
 
-Preview or remove ignored build debris, noncanonical result runs, and local
-v2/v3 working-tree copies without touching tracked v4 evidence, Git branches,
-the virtual environment, or the raw-data cache:
+Preview or remove ignored build debris and noncanonical result runs without
+touching V2/V3 legacy material, restored paper working copies, tracked v4
+evidence, Git branches, the virtual environment, or the raw-data cache:
 
 ```bash
 make clean-preview PYTHON=.venv/bin/python
