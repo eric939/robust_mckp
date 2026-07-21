@@ -75,6 +75,7 @@ paper_versions/v4/tables/*
 !paper_versions/v4/tables/v4_primary_publication.tex
 !paper_versions/v4/tables/v4_robustness_publication.tex
 !paper_versions/v4/tables/v4_stress_publication.tex
+!paper_versions/v4/tables/v4_external_publication.tex
 !paper_versions/v4/figures/
 paper_versions/v4/figures/*
 !paper_versions/v4/figures/v4_speedup_scaling.pdf
@@ -82,8 +83,8 @@ paper_versions/v4/figures/*
 
 !results/
 results/*
-!results/v4_publication_20260720_final/
-!results/v4_publication_20260720_final/**
+!results/v4_publication_20260721_certified_final/
+!results/v4_publication_20260721_certified_final/**
 
 # Submission-ready v4 PDFs referenced by the repository documentation.
 !output/

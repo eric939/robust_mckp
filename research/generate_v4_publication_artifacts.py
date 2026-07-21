@@ -95,6 +95,7 @@ def build_macros(results: Path) -> str:
     robustness = read_json(results / "robustness_summary.json")
     stress = read_json(results / "stress_summary.json")
     application = read_json(results / "application_summary.json")
+    external = read_json(results / "external_knapsack_summary.json")
     kernel_rows = read_csv(results / "kernel.csv")
     primary_rows = read_csv(results / "primary.csv")
     many_breakpoints = [row for row in kernel_rows if row["family"] == "many_breakpoints"]
@@ -121,6 +122,8 @@ def build_macros(results: Path) -> str:
             r"\newcommand{\PubValidationCases}{%d}" % validation["instances"],
             r"\newcommand{\PubValidationMaxError}{\num{%.2e}}" % validation["maximum_absolute_error"],
             r"\newcommand{\PubValidationMinSlack}{\num{%.2e}}" % validation["minimum_validity_slack"],
+            r"\newcommand{\PubValidationCertViolation}{\num{%.2e}}" % validation["maximum_certificate_violation"],
+            r"\newcommand{\PubValidationCertGap}{\num{%.2e}}" % validation["maximum_scaled_certificate_gap"],
             r"\newcommand{\PubKernelCases}{%d}" % kernel["instances"],
             r"\newcommand{\PubKernelLargeSpeedup}{%.2f}" % kernel["geomean_total_speedup_n_ge_360"],
             r"\newcommand{\PubKernelMaxError}{\num{%.2e}}" % kernel["maximum_identity_error"],
@@ -131,12 +134,14 @@ def build_macros(results: Path) -> str:
             r"\newcommand{\PubTraceGeoSpeedup}{%.2f}" % common_trace["geomean_speedup"],
             r"\newcommand{\PubTraceWins}{%d}" % common_trace["wins"],
             r"\newcommand{\PubTraceDominancePct}{%.1f\%%}" % (100 * common_trace["bound_dominance_rate"]),
+            r"\newcommand{\PubTraceCertGap}{\num{%.2e}}" % common_trace["maximum_scaled_certificate_gap"],
             r"\newcommand{\PubPrimaryCases}{%d}" % primary["instances"],
             r"\newcommand{\PubPrimaryGeoSpeedup}{%.2f}" % primary["geomean_speedup"],
             r"\newcommand{\PubPrimaryCILow}{%.2f}" % primary["geomean_speedup_ci95"][0],
             r"\newcommand{\PubPrimaryCIHigh}{%.2f}" % primary["geomean_speedup_ci95"][1],
             r"\newcommand{\PubPrimaryWins}{%d}" % primary["wins"],
             r"\newcommand{\PubPrimaryMaxDifference}{\num{%.2e}}" % primary["maximum_final_lower_bound_relative_difference"],
+            r"\newcommand{\PubPrimaryCertGap}{\num{%.2e}}" % primary["maximum_scaled_oracle_optimality_gap"],
             r"\newcommand{\PubPrimaryMedianThetaPct}{%.1f\%%}" % (100 * primary["median_compressed_theta_fraction"]),
             r"\newcommand{\PubPrimarySignP}{\num{%.2e}}" % primary["sign_test_pvalue"],
             r"\newcommand{\PubPrimaryNLowSpeedup}{%.2f}" % primary["size_geomean_speedup"]["360"],
@@ -162,6 +167,13 @@ def build_macros(results: Path) -> str:
             r"\newcommand{\PubApplicationCILow}{%.2f}" % application["geomean_speedup_ci95"][0],
             r"\newcommand{\PubApplicationCIHigh}{%.2f}" % application["geomean_speedup_ci95"][1],
             r"\newcommand{\PubApplicationNHighSpeedup}{%.2f}" % application["size_geomean_speedup"]["1440"],
+            r"\newcommand{\PubExternalCases}{%d}" % external["instances"],
+            r"\newcommand{\PubExternalWins}{%d}" % external["wins"],
+            r"\newcommand{\PubExternalGeoSpeedup}{%.2f}" % external["geomean_speedup"],
+            r"\newcommand{\PubExternalCILow}{%.2f}" % external["geomean_speedup_ci95"][0],
+            r"\newcommand{\PubExternalCIHigh}{%.2f}" % external["geomean_speedup_ci95"][1],
+            r"\newcommand{\PubExternalNHighSpeedup}{%.2f}" % external["size_geomean_speedup"]["10000"],
+            r"\newcommand{\PubExternalCertGap}{\num{%.2e}}" % external["maximum_scaled_oracle_optimality_gap"],
         ]
     )
 
@@ -262,6 +274,29 @@ def stress_table(rows: list[dict[str, str]]) -> str:
             r"\begin{tabular}{rrrrrr}",
             r"\toprule",
             r"Groups & Cases & Compressed (s) & Clique (s) & Geometric speedup & Wins \\",
+            r"\midrule",
+            *body,
+            r"\bottomrule",
+            r"\end{tabular}",
+        ]
+    )
+
+
+def external_table(rows: list[dict[str, str]]) -> str:
+    body = []
+    for n, sample in sorted(grouped(rows, "n").items(), key=lambda item: int(item[0])):
+        speedups = [float(row["adaptive_speedup"]) for row in sample]
+        body.append(
+            f"{int(n):,} & {len(sample)} & "
+            f"{statistics.median(float(row['compressed_seconds']) for row in sample):.3f} & "
+            f"{statistics.median(float(row['clique_seconds']) for row in sample):.3f} & "
+            f"{geometric_mean(speedups):.2f} & {sum(value > 1 for value in speedups)}/{len(sample)} \\\\"
+        )
+    return "\n".join(
+        [
+            r"\begin{tabular}{rrrrrr}",
+            r"\toprule",
+            r"Binary items & Cases & Envelope (s) & Clique (s) & Geometric speedup & Wins \\",
             r"\midrule",
             *body,
             r"\bottomrule",
@@ -392,7 +427,7 @@ def speedup_figure(
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--results", type=Path, default=ROOT / "results" / "v4_publication_20260720_final")
+    parser.add_argument("--results", type=Path, default=ROOT / "results" / "v4_publication_20260721_certified_final")
     parser.add_argument("--paper", type=Path, default=ROOT / "paper_versions" / "v4")
     args = parser.parse_args()
     results = args.results.resolve()
@@ -402,11 +437,13 @@ def main() -> None:
     robustness = read_csv(results / "robustness.csv")
     kernel = read_csv(results / "kernel.csv")
     stress = read_csv(results / "stress.csv")
+    external = read_csv(results / "external_knapsack.csv")
     write(paper / "auto" / "v4_publication_numbers.tex", build_macros(results))
     write(paper / "tables" / "v4_primary_publication.tex", primary_table(primary))
     write(paper / "tables" / "v4_robustness_publication.tex", robustness_table(results, robustness))
     write(paper / "tables" / "v4_kernel_publication.tex", kernel_table(kernel))
     write(paper / "tables" / "v4_stress_publication.tex", stress_table(stress))
+    write(paper / "tables" / "v4_external_publication.tex", external_table(external))
     speedup_figure(primary, stress, kernel, paper / "figures" / "v4_speedup_scaling.pdf")
 
     evidence_files = sorted(results.rglob("*.csv")) + sorted(results.rglob("*.json"))
@@ -422,6 +459,7 @@ def main() -> None:
             "tables/v4_robustness_publication.tex",
             "tables/v4_kernel_publication.tex",
             "tables/v4_stress_publication.tex",
+            "tables/v4_external_publication.tex",
             "figures/v4_speedup_scaling.pdf",
             "figures/v4_speedup_scaling.png",
         ],

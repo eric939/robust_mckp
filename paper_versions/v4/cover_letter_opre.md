@@ -13,28 +13,37 @@ exposes two simple group envelopes and permits simultaneous evaluation of one
 multiplier across the complete threshold family. The resulting minimax
 interval certificate is valid, exact on feasible singleton intervals, and
 provably no weaker than the bounded-threshold group-clique relaxation. The
-paper also gives an adaptive certification algorithm with explicit global
-bound invariants.
+paper also gives a convex bracketing algorithm with an explicit minimization
+gap, so the implemented bound inherits the exact dominance theorem up to its
+stated tolerance, and an adaptive algorithm with explicit global-bound
+invariants.
 
 The computational study is designed around the paper’s mechanism rather than
 one aggregate benchmark. Separate panels test algebraic identity, kernel
 scaling, identical-interval oracle behavior, end-to-end certification,
 robustness to altered budgets and menu widths, stress scaling through 5,760
-groups, and application-derived coefficient realism. In the protocol-fixed
+groups, and two separately scoped external-coefficient panels. In the fixed-design
 60-instance primary comparison, both methods reach the same prescribed
-tolerance; the proposed certificate wins all paired timings and has a 2.46-fold
-geometric-mean speedup, with a 95% design-stratified bootstrap interval of
-2.29 to 2.65. A separate exact-integration audit is deliberately reported as a
+tolerance; every proposed interval bound carries a numerical minimization
+certificate, the method wins all paired timings, and the geometric-mean
+speedup is 2.33-fold with a design-stratified 95% interval of 2.17 to 2.52.
+On nine coefficient sets transferred from a published robust-knapsack archive,
+it again wins every timing with a 2.32-fold geometric-mean speedup. A separate
+exact-integration audit is deliberately reported as a
 scope boundary: integer subproblem work can dominate, and the paper makes no
 claim of universal superiority over compact mixed-integer optimization.
 
-This manuscript is an independent strategic pivot with its own research
-question, theorem set, computational protocol, and evidence package. It does
-not present the classical Bertsimas–Sim threshold reduction or the
-fixed-MCKP relaxation as new. Its central contributions are the simultaneous
-group-envelope evaluator, the exact minimax dominance theorem, the adaptive
-certificate invariant, the protocol-fixed sparse-comparator study, and the
-scoped exact-integration audit.
+For transparency, the author also has a public preprint, “Robust Discrete
+Pricing Optimization via Multiple-Choice Knapsack Reductions”
+(arXiv:2603.18653). That manuscript studies fixed-threshold MCKP hull geometry,
+rounding gaps, and a pricing application. It does not contain or anticipate the
+present paper's simultaneous all-threshold envelope evaluator, certified
+minimax algorithm, dominance theorem, adaptive interval certificate, or
+computational study. The present manuscript is therefore an independent
+strategic pivot with its own research question, theorem set, protocol, and
+evidence package; the overlap is limited to classical robust-MCKP background.
+The paper does not present the Bertsimas–Sim threshold reduction or a fixed
+MCKP relaxation as new.
 
 The manuscript and electronic companion include data-and-code statements. A
 public reproducibility repository contains the serialized protocol, raw timing

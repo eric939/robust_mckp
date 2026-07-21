@@ -13,7 +13,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_RESULTS = ROOT / "results" / "v4_publication_20260720_final"
+DEFAULT_RESULTS = ROOT / "results" / "v4_publication_20260721_certified_final"
 DEFAULT_PAPER = ROOT / "paper_versions" / "v4"
 TEXT_ARTIFACTS = (
     "auto/v4_publication_numbers.tex",
@@ -21,6 +21,7 @@ TEXT_ARTIFACTS = (
     "tables/v4_robustness_publication.tex",
     "tables/v4_kernel_publication.tex",
     "tables/v4_stress_publication.tex",
+    "tables/v4_external_publication.tex",
 )
 
 
@@ -80,6 +81,7 @@ def main() -> None:
         "robustness": 36,
         "stress": 8,
         "application": 9,
+        "external_knapsack": 9,
     }
     for stem, expected in expected_counts.items():
         rows = csv_rows(results / f"{stem}.csv")

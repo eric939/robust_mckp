@@ -6,7 +6,7 @@ project. The separate v3 manuscript, experiments, and history remain on the
 
 ## Version 4 — Current Manuscript
 
-Date: 2026-07-20.
+Date: 2026-07-21.
 
 The canonical source is `paper_versions/v4/main_v4.tex`. The focused
 algorithmic contribution is simultaneous Lagrangian evaluation over the
@@ -19,6 +19,9 @@ Durable contributions and boundaries:
   working storage for ragged group arrays.
 - An epigraph-dual mapping proves that the exact minimax envelope bound is no
   larger than the bounded-threshold group-clique LP.
+- Convex geometric bracketing and Lipschitz contraction give the deployed
+  oracle an explicit additive minimization certificate; its evaluated bound
+  inherits minimax dominance up to that gap.
 - Interval-bound validity, feasible-singleton equality with the
   fixed-threshold LP, and the adaptive certificate invariant are proved.
 - The interval bounds can be embedded in an exact threshold search; a separate
@@ -29,11 +32,28 @@ Durable contributions and boundaries:
   are explicitly outside the novelty claim.
 - Algebraic validation uses 40 irregular held-out instances. The released
   campaign also contains primary, common-trace, robustness, stress, exact
-  integration, and post-confirmatory UCI-calibrated panels.
+  integration, UCI-calibrated, and published-coefficient panels.
 - The finite-menu pricing specialization is a motivating example and a source
   of application-derived coefficient scales. It is not transaction-level
   validation, causal demand estimation, or evidence of commercial pricing
   performance.
+
+## Certified-Oracle and External-Evidence Audit
+
+Date: 2026-07-21.
+
+- Replaced heuristic scalar refinement in the production oracle by certified
+  minimization of the finite convex piecewise-linear multiplier envelope.
+- Added exact epigraph-LP enclosure tests and release gates on the scaled
+  certificate gap.
+- Added a nine-instance panel from a published CC BY 4.0 robust-knapsack
+  archive, with archive digest, instance provenance, and an explicit statement
+  that transferring source deviations to the uncertain resource is a
+  model-compatible coefficient test rather than source-model replication.
+- Re-audited the 2025--2026 literature, including the independent v3 preprint
+  and chance-constrained MCKP work, without finding a direct collision.
+- Added explicit v3 title/arXiv disclosure and non-overlap language to the
+  cover letter.
 
 ## Mathematical and Release Audit
 
@@ -64,8 +84,10 @@ Date: 2026-07-20.
 - Every active interval record must upper-bound every unevaluated feasible
   threshold it covers. Discarded bounds remain in the global upper bound until
   dominated or made obsolete by exhaustive evaluation.
-- Finite multiplier search may weaken an interval bound. It must not be called
-  exact minimization except on independently verified feasible singletons.
+- A numerically evaluated multiplier bound must not be called the exact minimax
+  value. The released implementation reports a computable additive certificate;
+  dominance and singleton equality for the deployed value are stated only up
+  to that certificate.
 - The released stopping test is a scaled floating-point solver-tolerance
   certificate, not an interval-arithmetic proof.
 - The theorem's `O(B + K)` storage bound assumes ragged group arrays; the
@@ -75,12 +97,12 @@ Date: 2026-07-20.
 
 ## Remaining Scientific Limits
 
-- Numerical claims are tied to the dated frozen campaign and its recorded
+- Numerical claims are tied to the dated serialized campaign and its recorded
   environment and protocol. Regenerate the manifest after any source or
   evidence change.
 - The timing study supports the reported simultaneous-evaluation advantage in
   the tested regime, not universal dominance over every alternative solver.
 - The many-breakpoints family remains a documented boundary case for exact
   integration.
-- The UCI-calibrated application is post-confirmatory and semi-synthetic; its
+- The UCI-calibrated application is semi-synthetic; its
   role is coefficient-scale realism, not external validation of decisions.

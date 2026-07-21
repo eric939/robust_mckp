@@ -14,7 +14,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ARCHIVE_ROOT = "robust_mckp_v4_anonymous"
-ZIP_TIMESTAMP = (2026, 7, 20, 0, 0, 0)
+ZIP_TIMESTAMP = (2026, 7, 21, 0, 0, 0)
 IDENTITY_TERMS = (
     rb"\bEri" + rb"c\b",
     rb"\bSha" + rb"o\b",
@@ -29,7 +29,7 @@ TEXT_SUFFIXES = {".csv", ".json", ".md", ".py", ".tex", ".txt"}
 
 README = """# Anonymous v4 review supplement
 
-This identity-scanned archive contains the implementation, tests, frozen
+This identity-scanned archive contains the implementation, tests, serialized
 protocol, raw result records, environment records, generated numerical paper
 inputs, vector figure, and blind manuscript PDFs.
 
@@ -41,7 +41,7 @@ source .venv/bin/activate
 python -m pip install -r requirements-anonymous.txt
 PYTHONPATH=src python -m pytest -q
 PYTHONPATH=src python scripts/verify_v4_release.py \
-  --results results/v4_publication_20260720_final \
+  --results results/v4_publication_20260721_certified_final \
   --paper paper_versions/v4
 ```
 
@@ -88,7 +88,7 @@ def main() -> None:
     parser.add_argument(
         "--results",
         type=Path,
-        default=ROOT / "results" / "v4_publication_20260720_final",
+        default=ROOT / "results" / "v4_publication_20260721_certified_final",
     )
     parser.add_argument("--paper", type=Path, default=ROOT / "paper_versions" / "v4")
     parser.add_argument(

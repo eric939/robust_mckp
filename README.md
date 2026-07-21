@@ -10,7 +10,10 @@ exactly-one groups. For `K` options and `B` robust-deviation thresholds, it
 evaluates a multiplier in `O(B + K log(B + 1))` time and `O(B + K)` working
 storage. The paper combines this oracle with a valid adaptive certificate for
 the maximum fixed-threshold MCKP LP value and proves that the exact minimax
-bound is no weaker than the bounded-threshold group-clique LP. A released exact
+bound is no weaker than the bounded-threshold group-clique LP. The production
+oracle uses convex bracketing and Lipschitz contraction to report an explicit
+multiplier-optimization gap, so its deployed dominance and singleton-accuracy
+claims are numerically certified. A released exact
 interval-search integration validates global gap accounting without claiming a
 universally superior integer solver.
 
@@ -18,13 +21,13 @@ universally superior integer solver.
 
 - `research/compressed_interval_oracle.py`: proposed group-envelope oracle.
 - `research/benchmark_instances.py`: neutral, deterministic v4 benchmark
-  generator; its frozen seed namespace is implementation metadata only.
+  generator with an explicit v4 seed namespace.
 - `research/bound_dominance.py`: exact epigraph LP used to validate the formal
   dominance theorem.
 - `research/integrated_exact_solver.py`: exact integer threshold-interval
   search using either the envelope or clique bound.
 - `research/exact_integration_campaign.py`: controlled exact-solver audit.
-- `research/v4_publication_campaign.py`: frozen validation and experiment
+- `research/v4_publication_campaign.py`: serialized validation and experiment
   protocol, gates, generators, and statistical summaries.
 - `research/generate_v4_publication_artifacts.py`: tables, figure, macros, and
   hash manifest used by the manuscript.
@@ -32,7 +35,7 @@ universally superior integer solver.
 - `tests/test_compressed_interval_oracle.py` and
   `tests/test_v4_publication_campaign.py`: v4 algebra and protocol tests.
 - `paper_versions/v4/`: canonical manuscript source and generated inputs.
-- `results/v4_publication_20260720_final/`: released instance-level results,
+- `results/v4_publication_20260721_certified_final/`: released instance-level results,
   raw timing repetitions, protocol, environments, summaries, and public-data
   calibration aggregates.
 - `src/robust_mckp/`: shared solver infrastructure used by the experiments.
@@ -68,7 +71,7 @@ make clean-preview PYTHON=.venv/bin/python
 make clean PYTHON=.venv/bin/python
 ```
 
-To rerun the complete frozen campaign and rebuild its paper artifacts:
+To rerun the complete fixed-design campaign and rebuild its paper artifacts:
 
 ```bash
 make v4-reproduce PYTHON=.venv/bin/python
@@ -80,20 +83,21 @@ data provenance, and separate manuscript-build command.
 
 ## Headline released evidence
 
-- 40/40 algebraic and complete-scan validation cases pass.
+- 40/40 algebraic, epigraph-LP, and complete-scan validation cases pass; the
+  maximum scaled multiplier-certificate gap is below `1e-8`.
 - 60/60 primary instances reach scaled tolerance `1e-6`; the proposed method
-  wins 60/60 paired timings with geometric-mean speedup 2.456 (95% stratified
-  bootstrap CI [2.290, 2.649]).
-- 24/24 common-trace cases favor the proposed oracle, with geometric-mean
-  speedup 3.272 and no weaker matched interval bound.
-- All 36 robustness cases and all eight stress cases reach tolerance; the
-  stress geometric-mean speedup is 5.766 through 5,760 groups.
-- The post-confirmatory, 200,000-record UCI-calibrated semi-synthetic panel wins
-  9/9 timings, with geometric-mean speedup 1.799 (95% bootstrap interval
-  [1.527, 2.186]).
+  wins 60/60 paired timings with geometric-mean speedup 2.333 (95% stratified
+  bootstrap interval [2.167, 2.517]).
+- All 36 robustness cases and all eight stress cases reach tolerance.
+- A nine-instance panel transformed from a published robust-knapsack archive
+  wins 9/9 timings, with geometric-mean speedup 2.320 (95% design-stratified
+  bootstrap interval [2.233, 2.404]). This is an out-of-generator coefficient
+  test, not a replication of the source paper's uncertainty model.
+- The 200,000-record UCI-calibrated panel is application-derived and
+  semi-synthetic; it tests coefficient scales rather than causal demand claims.
 - In the separate 12-instance exact audit, envelope and clique interval search
-  each certify 10 cases, enumeration certifies 11, and compact SCIP certifies
-  all 12; certified objectives agree within `1.14e-13`.
+  each certify 11 cases, while enumeration and compact SCIP certify all 12;
+  certified objectives agree within `1.14e-13`.
 
 These are instance-level paired results on the recorded single-threaded
 environment, not universal performance claims.

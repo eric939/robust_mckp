@@ -692,6 +692,11 @@ def adaptive_interval_bound(
     start = time.perf_counter()
     lp_cache: dict[int, float] = {}
     fixed_theta_oracle = FixedThetaLPOracle(instance)
+    interval_bound_evaluations = 0
+    multiplier_evaluations = 0
+    certified_bound_evaluations = 0
+    maximum_oracle_gap = 0.0
+    maximum_scaled_oracle_gap = 0.0
 
     def fixed_lp(index: int) -> float:
         if index not in lp_cache:
@@ -699,7 +704,20 @@ def adaptive_interval_bound(
         return lp_cache[index]
 
     def interval_record(lo: int, hi: int) -> tuple[float, int, int]:
+        nonlocal interval_bound_evaluations, multiplier_evaluations
+        nonlocal certified_bound_evaluations, maximum_oracle_gap
+        nonlocal maximum_scaled_oracle_gap
         bound = oracle.bound(lo, hi)
+        interval_bound_evaluations += 1
+        multiplier_evaluations += int(bound.evaluations)
+        if bound.certified:
+            certified_bound_evaluations += 1
+            maximum_oracle_gap = max(maximum_oracle_gap, float(bound.optimality_gap))
+            maximum_scaled_oracle_gap = max(
+                maximum_scaled_oracle_gap,
+                float(bound.optimality_gap)
+                / max(1.0, abs(float(bound.upper_bound))),
+            )
         # Candidate selection is deliberately oracle-independent so that the
         # end-to-end comparator differs only in its interval upper bound.
         for index in sorted({lo, hi, (lo + hi) // 2}):
@@ -727,6 +745,14 @@ def adaptive_interval_bound(
                 "upper_bound": float("-inf"),
                 "relative_gap": 0.0,
                 "theta_lp_evaluations": len(lp_cache),
+                "interval_bound_evaluations": interval_bound_evaluations,
+                "multiplier_evaluations": multiplier_evaluations,
+                "certified_bound_evaluations": certified_bound_evaluations,
+                "all_interval_bounds_certified": (
+                    certified_bound_evaluations == interval_bound_evaluations
+                ),
+                "maximum_oracle_optimality_gap": maximum_oracle_gap,
+                "maximum_scaled_oracle_optimality_gap": maximum_scaled_oracle_gap,
                 "interval_splits": 0,
                 "runtime_seconds": time.perf_counter() - start,
             }
@@ -766,6 +792,14 @@ def adaptive_interval_bound(
         "upper_bound": upper,
         "relative_gap": (upper - lower) / max(1.0, abs(lower)),
         "theta_lp_evaluations": len(lp_cache),
+        "interval_bound_evaluations": interval_bound_evaluations,
+        "multiplier_evaluations": multiplier_evaluations,
+        "certified_bound_evaluations": certified_bound_evaluations,
+        "all_interval_bounds_certified": (
+            certified_bound_evaluations == interval_bound_evaluations
+        ),
+        "maximum_oracle_optimality_gap": maximum_oracle_gap,
+        "maximum_scaled_oracle_optimality_gap": maximum_scaled_oracle_gap,
         "interval_splits": splits,
         "runtime_seconds": time.perf_counter() - start,
     }

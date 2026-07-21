@@ -1,6 +1,6 @@
 # Submission and Public Artifact Manifest
 
-**Current-version flag (2026-07-20):** `paper_versions/v4/` is canonical.
+**Current-version flag (2026-07-21):** `paper_versions/v4/` is canonical.
 Version 3 is a separate manuscript and is not part of the v4 submission.
 
 ## Journal builds
@@ -29,8 +29,8 @@ make v4-anonymous-package PYTHON=.venv/bin/python
 The same target also builds `main_v4.pdf`, the convenient combined
 main-plus-appendix version; it is not a separate journal upload.
 
-The current local builds are 16 pages for each OPRE main-paper variant, four
-pages for each companion, 15 pages for the combined reading version, and one
+The current local builds are 17 pages for each OPRE main-paper variant, four
+pages for each companion, 17 pages for the combined reading version, and one
 page for the executive summary. The summary is cover-letter support and should
 be uploaded only if the journal permits it.
 
@@ -55,11 +55,11 @@ The v4 branch/package must expose:
 - `research/compressed_interval_oracle.py`;
 - `research/bound_dominance.py`, `research/integrated_exact_solver.py`, and
   `research/exact_integration_campaign.py`;
-- the complete frozen campaign and artifact generator under `research/`;
+- the complete serialized campaign and artifact generator under `research/`;
 - all v4-specific tests;
 - `paper_versions/v4/` source, generated TeX inputs, vector figure, and evidence
   manifest;
-- `results/v4_publication_20260720_final/`, including raw timing repetitions,
+- `results/v4_publication_20260721_certified_final/`, including raw timing repetitions,
   instance-level records, summaries, protocol, environments, and UCI-derived
   aggregates; and
 - current `README.md`, `REPRODUCIBILITY.md`, `SUBMISSION.md`, `CITATION.cff`,
@@ -101,21 +101,26 @@ alone are mutable and are not an archival identifier.
 The supplied `paper_versions/v4/cover_letter_opre.md` presents v4 as an
 independent strategic pivot with its own research question, novelty claim,
 theorems, evidence, and submission package. Do not describe v4 as a revision,
-successor, replacement, or superseding version of v3. If a journal form asks
-for other public manuscripts with adjacent terminology, identify v3 as a
-separate project and state that it does not contain or anticipate the v4
-group-envelope evaluator, minimax dominance theorem, or protocol-fixed study.
+successor, replacement, or superseding version of v3. The cover letter must
+explicitly identify the public v3 preprint, *Robust Discrete Pricing
+Optimization via Multiple-Choice Knapsack Reductions* (arXiv:2603.18653), and
+state the precise non-overlap in model target, theorem, algorithm, and evidence.
+Repeat that disclosure in any journal form asking about related manuscripts.
 Do not imply that the classical Bertsimas–Sim threshold reduction or
 fixed-MCKP LP geometry is new.
 
 ## Data and claim policy
 
-The public UCI panel is post-confirmatory and semi-synthetic. Its calibration
+The public UCI panel is application-derived and semi-synthetic. Its calibration
 uses a nonrandom 200,000-record prefix to set coefficient scales; it does not
 estimate causal demand or validate commercial pricing outcomes. Runtime claims
 are tied to the released single-threaded environment and comparator
-implementation. The principal theoretical claim is simultaneous evaluation and
-valid certification of the fixed-threshold LP family together with formal
-dominance over the group-clique interval LP. The exact integration validates
+implementation. The published-coefficient panel transparently transfers the
+source deviations from objective to resource uncertainty, so it is an
+out-of-generator stress test rather than a direct source-model comparison. The
+principal theoretical claim is simultaneous evaluation and valid certification
+of the fixed-threshold LP family together with exact-minimax dominance over the
+group-clique interval LP; the deployed evaluated bound inherits this result up
+to its explicit multiplier-optimization certificate. The exact integration validates
 global gap accounting but does not support universal integer-solver
 superiority.

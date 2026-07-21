@@ -72,7 +72,7 @@ def candidates(tracked: set[Path]) -> list[Path]:
         tuple(
             path
             for path in results_root.iterdir()
-            if path.is_dir() and path.name != "v4_publication_20260720_final"
+            if path.is_dir() and path.name != "v4_publication_20260721_certified_final"
         )
         if results_root.is_dir()
         else ()

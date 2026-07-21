@@ -1,9 +1,10 @@
 PYTHON ?= python3
 TECTONIC ?= tectonic
-V4_RELEASE_RESULTS ?= results/v4_publication_20260720_final
+V4_RELEASE_RESULTS ?= results/v4_publication_20260721_certified_final
 V4_RUN_RESULTS ?= results/v4_reproduction
 V4_RUN_PAPER ?= tmp/v4_reproduction_paper
 V4_CALIBRATION ?= $(V4_RELEASE_RESULTS)/uci_calibration
+V4_EXTERNAL_ARCHIVE ?= data_cache/RobustKnapsack.zip
 
 .PHONY: install-dev test check clean-preview \
 	v4-verify v4-evidence v4-exact-audit v4-reproduce v4-paper v4-package \
@@ -36,9 +37,10 @@ v4-exact-audit:
 
 v4-reproduce: test
 	env OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
-		$(PYTHON) scripts/run_v4_publication_campaign.py \
+	$(PYTHON) scripts/run_v4_publication_campaign.py \
 		--output-dir $(V4_RUN_RESULTS) \
-		--calibration-dir $(V4_CALIBRATION)
+		--calibration-dir $(V4_CALIBRATION) \
+		--external-archive $(V4_EXTERNAL_ARCHIVE)
 	env OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
 		$(PYTHON) research/exact_integration_campaign.py \
 		--output-dir $(V4_RUN_RESULTS)/exact_integration \

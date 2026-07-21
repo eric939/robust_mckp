@@ -1,9 +1,4 @@
-"""Deterministic benchmark instances for the v4 publication campaign.
-
-The seed namespace is frozen to reproduce the released evidence byte for byte.
-Its literal ``v3`` prefix is historical implementation metadata only and does
-not express a relationship between the independent v3 and v4 manuscripts.
-"""
+"""Deterministic benchmark instances for the v4 publication campaign."""
 from __future__ import annotations
 
 import hashlib
@@ -23,7 +18,7 @@ BENCHMARK_FAMILIES = (
 
 
 def _rng(family: str, n: int, m: int, gamma: int, seed: int) -> np.random.Generator:
-    digest = hashlib.sha256(f"v3|{family}|{n}|{m}|{gamma}|{seed}".encode()).hexdigest()
+    digest = hashlib.sha256(f"v4|{family}|{n}|{m}|{gamma}|{seed}".encode()).hexdigest()
     return np.random.default_rng(int(digest[:16], 16) % (2**32))
 
 

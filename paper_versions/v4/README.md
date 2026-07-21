@@ -25,7 +25,7 @@ Build the identity-scanned anonymous review supplement with:
 make v4-anonymous-package PYTHON=.venv/bin/python
 ```
 
-The numerical claims are generated from `results/v4_publication_20260720_final` by
+The numerical claims are generated from `results/v4_publication_20260721_certified_final` by
 `research/generate_v4_publication_artifacts.py`. That directory contains the
 serialized protocol, its digest, separate environment records, instance-level and
 raw timing CSVs, JSON gate summaries, and the evidence used in every table and

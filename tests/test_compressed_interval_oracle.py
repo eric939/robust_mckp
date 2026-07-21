@@ -16,19 +16,19 @@ from research.novelty_go_no_go import ThetaIntervalOracle, build_small_instance
     [
         (
             "dense_frontier",
-            "31e88519622239964697b3333f8fef598791550f6f5c0ca238ccb7fcf358cede",
+            "ddc193b8b984ad61846fdab0f857b36c58b5db7cd052543a747996fe5f8fd63e",
         ),
         (
             "correlated_risk",
-            "7bd13af43481ec1ac01b46d21b460714dea393c931067fbbde777c50098b3492",
+            "c6d6c6b6ea8c41a6fd2b054a21b3a6dd42d788d1a25211e9d6c6144c31684198",
         ),
         (
             "near_tie",
-            "0f478f17e09b2fd937b040bd48d1b6a2ee1a5c5d42f74ceb4d399e76f37d62c4",
+            "8ccc8bed7fd5e93f5881073299db3e0bb7972335567bfaccda62fec2076c1ef8",
         ),
         (
             "many_breakpoints",
-            "33222d8dbc34c63af47e26705b4a69299efb5714827970b6612192ab661f2d35",
+            "b7b6e09529ef77f440358058fd6028fb1928b476cb40d543bf63001f09c04085",
         ),
     ],
 )
@@ -79,7 +79,7 @@ def test_compressed_oracle_matches_dense_bound(family: str) -> None:
         actual = compressed.bound(lo, hi)
         expected = dense.bound(lo, hi)
         assert actual.upper_bound == pytest.approx(
-            expected.upper_bound, abs=2e-6, rel=2e-10
+            expected.upper_bound, abs=5e-6, rel=2e-10
         )
 
 

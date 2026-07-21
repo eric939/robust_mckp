@@ -71,6 +71,11 @@ class IntervalBound:
     lambda_value: float
     evaluations: int
     runtime_seconds: float
+    # Populated by certifying minimax oracles. Defaults preserve the original
+    # four-field research interface for legacy comparators and test doubles.
+    lower_bound: float = float("-inf")
+    optimality_gap: float = float("inf")
+    certified: bool = False
 
 
 def _write_csv(path: Path, rows: Sequence[dict]) -> None:
